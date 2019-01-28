@@ -1,0 +1,63 @@
+<div class="main">
+		<h1>Example App</h1>
+		<button on:click="resetWidget()">{buttonMessage}</button>
+</div>
+
+<style>
+	:global(body) {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		background-color: white;
+	}
+</style>
+
+<script>
+  import Livechat from "@livechat/agent-app-widget-sdk";
+	import sectionJson from './widgetConfigSample';
+
+  export default {
+		data() {
+			return {
+				counter: 0,
+				buttonMessage: 'Click to reset widget'
+			};
+		},
+
+    oncreate() {
+			this.handleButtonClickMessage = this.handleButtonClickMessage.bind(this);
+      Livechat.on(
+        "customer_details_section_button_click",
+        this.handleButtonClickMessage
+      );
+    },
+
+    ondestroy() {
+      Livechat.off(
+        "customer_details_section_button_click",
+        this.handleButtonClickMessage
+      );
+    },
+
+    methods: {
+      async handleButtonClickMessage({ buttonId }) {
+				const { counter } = this.get();
+				const incrementedCounter = counter + 1;
+				const section = JSON.parse(sectionJson);
+
+				section.components[0].data.label = `Sample: ${incrementedCounter}`;
+				await Livechat.modifyCustomerDetailsSection(section);
+				this.set({ counter: incrementedCounter });
+			},
+			
+      async resetWidget() {
+				const section = JSON.parse(sectionJson);
+				console.log(Livechat.modifyCustomerDetailsSection(section));
+
+				this.set({ buttonMessage: 'Done!' });
+				setTimeout(() => this.set({ buttonMessage: 'Click to reset widget' }), 500);
+      }
+    }
+  };
+</script>
