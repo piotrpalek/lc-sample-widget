@@ -53,7 +53,7 @@
 				console.log(Livechat.modifyCustomerDetailsSection(section));
 
 				this.set({ buttonMessage: 'Done!' });
-				setTimeout(() => this.set({ buttonMessage: 'Click to reset widget' }), 500);
+				setTimeout(() => this.set({ buttonMessage: 'Click to reset widget', counter: 0 }), 500);
       }
     }
   };
