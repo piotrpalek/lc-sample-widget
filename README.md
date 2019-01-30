@@ -4,7 +4,7 @@
 
 1. Log into the Agent App using your license.
 2. Go to [Developer Console](https://developers.livechatinc.com/console/apps) (or [Developers Labs Console](https://developers.labs.livechatinc.com/console/apps)) and create a new `Agent App Widget` app.
-3. Go to the `Building blocks` section of the newly created app and create a new Agent App widget. The `Widget source URL` can be either `https://livechat.github.io/sample-widget-integration/` or `https://localhost:4000`, if you want to use the local version of the widget. Set the `Widget placement` to `Chat details`. Provide the initial state JSON, eg.:
+3. Go to the `Building blocks` section of the newly created app and create a new Agent App widget. The `Widget source URL` can be either `https://piotrpalek.github.io/lc-sample-widget/` or `https://localhost:8080`, if you want to use the local version of the widget. Set the `Widget placement` to `Chat details`. Provide the initial state JSON, eg.:
 
 ```json
 {
