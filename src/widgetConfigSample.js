@@ -1,5 +1,5 @@
 export default JSON.stringify({
-	"title": "Example App",
+	"title": "Widget Integration",
 	"components": [
 		{
 			"type": "button",

@@ -8,7 +8,12 @@
 
 ```json
 {
-  "customerDetailsSections": []
+  "customerDetailsSections": [
+    {
+      "title": "Widget Integration",
+      "components": []
+    }
+  ]
 }
 ```
 
