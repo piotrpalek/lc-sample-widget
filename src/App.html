@@ -68,7 +68,7 @@
         this.set({ counter: incrementedCounter });
       },
 
-      handleCustomerMessage({ message, message_source: messageSource }) {
+      async handleCustomerMessage({ message, message_source: messageSource }) {
         if (messageSource !== "visitor") {
           return;
         }
@@ -84,28 +84,38 @@
           return;
         }
 
-        const { allTrackingNumbers } = this.get();
-        const newTrackingObject = {};
-        newTrackingObject[trackingNumber] = { trackingNumber };
-        this.set({
-          allTrackingNumbers: { ...allTrackingNumbers, ...newTrackingObject }
-        });
+				const trackingUrl = `http://localhost:54321/ups?tracking=${trackingNumber}`;
+
+				try {
+					const response = await fetch(trackingUrl);
+					const json = await response.json();
+					
+					const { allTrackingNumbers } = this.get();
+					const newTrackingObject = {};
+					const status = json["TrackResponse"]["Shipment"]["Package"]["Activity"]["Status"]["Description"];
+					newTrackingObject[trackingNumber] = { trackingNumber, status };
+					this.set({
+						allTrackingNumbers: { ...allTrackingNumbers, ...newTrackingObject }
+					});
+				} catch (e) {
+					console.error(e);
+				}
       },
 
-      createRow({ trackingNumber }) {
+      createRow({ trackingNumber, status }) {
         return [
           {
             type: "label_value",
             data: {
-              label: "Package: ",
-              value: `#${trackingNumber}`
+              label: "Package#: ",
+              value: trackingNumber
             }
           },
           {
             type: "label_value",
             data: {
               label: "Status: ",
-              value: "In-Transit"
+              value: status
             }
           },
           {
@@ -132,10 +142,10 @@
           const components = trackingNumberKeys.map((key, index) => {
             const row = this.createRow(trackingNumbers[key]);
 
-            if (index > 0) {
-              return [{ type: "line" }, ...row];
-            } else {
+            if (index <= 0) {
               return row;
+            } else {
+							return [{ type: "line" }, ...row];
             }
           });
           const flatComponents = [].concat(...components);
