@@ -1,11 +1,10 @@
 export default JSON.stringify({
-	"title": "Widget Integration",
+	"title": "UPS Packages Status",
 	"components": [
 		{
-			"type": "button",
+			"type": "title",
 			"data": {
-				"label": "Sample button",
-				"id": "section-button"
+				"title": "No packages found"
 			}
 		}
 	]
