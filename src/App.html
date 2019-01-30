@@ -84,22 +84,22 @@
           return;
         }
 
-				const trackingUrl = `http://localhost:54321/ups?tracking=${trackingNumber}`;
+        const trackingUrl = `http://localhost:54321/ups?tracking=${trackingNumber}`;
 
-				try {
-					const response = await fetch(trackingUrl);
-					const json = await response.json();
-					
-					const { allTrackingNumbers } = this.get();
-					const newTrackingObject = {};
-					const status = json["TrackResponse"]["Shipment"]["Package"]["Activity"]["Status"]["Description"];
-					newTrackingObject[trackingNumber] = { trackingNumber, status };
-					this.set({
-						allTrackingNumbers: { ...allTrackingNumbers, ...newTrackingObject }
-					});
-				} catch (e) {
-					console.error(e);
-				}
+        try {
+          const response = await fetch(trackingUrl);
+          const json = await response.json();
+          
+          const { allTrackingNumbers } = this.get();
+          const newTrackingObject = {};
+          const status = json["TrackResponse"]["Shipment"]["Package"]["Activity"]["Status"]["Description"];
+          newTrackingObject[trackingNumber] = { trackingNumber, status };
+          this.set({
+            allTrackingNumbers: { ...allTrackingNumbers, ...newTrackingObject }
+          });
+        } catch (e) {
+          console.error(e);
+        }
       },
 
       createRow({ trackingNumber, status }) {
@@ -145,7 +145,7 @@
             if (index <= 0) {
               return row;
             } else {
-							return [{ type: "line" }, ...row];
+              return [{ type: "line" }, ...row];
             }
           });
           const flatComponents = [].concat(...components);
