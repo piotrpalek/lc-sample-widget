@@ -1,3 +1,4 @@
+<button on:click="simulateTracking()">Simulate tracking</button>
 <TabContent content={allResponses} />
 
 <script>
@@ -91,6 +92,18 @@
         } catch (e) {
           console.error(e);
         }
+      },
+
+      simulateTracking() {
+        function getRandomInt(min, max) {
+          return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+  
+        const debugTrackingNumbers = ['1Z648616E192760718', '1ZWX0692YP40636269', '1Z12345E1305277940'];
+        this.handleCustomerMessage({ 
+          message: debugTrackingNumbers[getRandomInt(0, 2)],
+          message_source: 'visitor'
+        });
       }
     },
 
