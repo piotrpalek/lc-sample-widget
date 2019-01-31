@@ -1,4 +1,6 @@
-<button on:click="simulateTracking()">Simulate tracking</button>
+{#if isDebug}
+  <button on:click="simulateTracking()">Simulate tracking</button>
+{/if}
 <TabContent content={allResponses} />
 
 <script>
@@ -7,22 +9,11 @@
   import widgetRenderer from './widgetRenderer';
   import TabContent from './TabContent.html';
 
-  const defaultWidgetState = JSON.stringify({
-    title: "UPS Packages Status",
-    components: [
-      {
-        type: "title",
-        data: {
-          title: "No packages found"
-        }
-      }
-    ]
-  });
-
   export default {
     data() {
       return {
-        allTrackingNumbers: {}
+        allTrackingNumbers: {},
+        isDebug: true
       };
     },
 
