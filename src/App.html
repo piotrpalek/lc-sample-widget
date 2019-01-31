@@ -1,19 +1,12 @@
 <div class="main">
-  <h1>Example App</h1>
-  <button on:click="resetWidget()">{buttonMessage}</button>
+  <h1>UPS Packages Status</h1>
 </div>
-
-<style>
-  button {
-    font-size: 14px;
-    line-height: 2rem;
-  }
-</style>
 
 <script>
   import Livechat from "@livechat/agent-app-widget-sdk";
+  import { upsRegex } from './constants';
+  import widgetRenderer from './widgetRenderer';
 
-  const upsRegex = /\b(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\dT]\d\d\d ?\d\d\d\d ?\d\d\d)\b/i;
   const defaultWidgetState = JSON.stringify({
     title: "UPS Packages Status",
     components: [
@@ -45,8 +38,7 @@
 
     onupdate() {
       const { allTrackingNumbers } = this.get();
-      console.log("did update", allTrackingNumbers);
-      this.renderWidget(Object.keys(allTrackingNumbers), allTrackingNumbers);
+      widgetRenderer(Object.keys(allTrackingNumbers), allTrackingNumbers);
     },
 
     ondestroy() {
@@ -59,16 +51,11 @@
 
     methods: {
       async handleButtonClickMessage({ buttonId }) {
-        const { counter } = this.get();
-        const incrementedCounter = counter + 1;
-        const section = JSON.parse(sectionJson);
-
-        section.components[0].data.label = `Sample: ${incrementedCounter}`;
-        await Livechat.modifyCustomerDetailsSection(section);
-        this.set({ counter: incrementedCounter });
+        console.log('handling button click: ', buttonId);
       },
 
       async handleCustomerMessage({ message, message_source: messageSource }) {
+        console.log('handling customer message: ', message);
         if (messageSource !== "visitor") {
           return;
         }
@@ -89,7 +76,7 @@
         try {
           const response = await fetch(trackingUrl);
           const json = await response.json();
-          
+
           const { allTrackingNumbers } = this.get();
           const newTrackingObject = {};
           const status = json["TrackResponse"]["Shipment"]["Package"]["Activity"]["Status"]["Description"];
@@ -100,76 +87,6 @@
         } catch (e) {
           console.error(e);
         }
-      },
-
-      createRow({ trackingNumber, status }) {
-        return [
-          {
-            type: "label_value",
-            data: {
-              label: "Package#: ",
-              value: trackingNumber
-            }
-          },
-          {
-            type: "label_value",
-            data: {
-              label: "Status: ",
-              value: status
-            }
-          },
-          {
-            type: "button",
-            data: {
-              label: "Show more details",
-              id: `id-${trackingNumber}`
-            }
-          }
-        ];
-      },
-
-      renderWidget(trackingNumberKeys, trackingNumbers) {
-        if (trackingNumberKeys.length === 0) {
-          this.modifyComponentSection([
-            {
-              type: "title",
-              data: {
-                title: "No packages found"
-              }
-            }
-          ]);
-        } else if (trackingNumberKeys.length > 0) {
-          const components = trackingNumberKeys.map((key, index) => {
-            const row = this.createRow(trackingNumbers[key]);
-
-            if (index <= 0) {
-              return row;
-            } else {
-              return [{ type: "line" }, ...row];
-            }
-          });
-          const flatComponents = [].concat(...components);
-          this.modifyComponentSection(flatComponents);
-        }
-      },
-
-      modifyComponentSection(componentList = []) {
-        Livechat.modifyCustomerDetailsSection({
-          title: "UPS Packages Status",
-          components: componentList
-        });
-      },
-
-      resetWidget() {
-        const section = JSON.parse(sectionJson);
-        console.log(Livechat.modifyCustomerDetailsSection(section));
-
-        this.set({ buttonMessage: "Done!" });
-        setTimeout(
-          () =>
-            this.set({ buttonMessage: "Click to reset widget", counter: 0 }),
-          500
-        );
       }
     }
   };
