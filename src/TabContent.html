@@ -1,0 +1,71 @@
+<h1>UPS Packages Status</h1>
+<ul ref:responses>
+  {#each normalizedContent as response, index}
+    <li id={index}>
+      <h1>Tracking #: {response.trackingNumber}</h1>
+      <div class="json-container"></div>
+    </li>
+  {/each}
+</ul>
+
+<style>
+ h1 {
+   font-size: 16px;
+ }
+
+ ul {
+   list-style: none;
+ }
+
+ :global(.json-formatter-string) {
+   white-space: normal!important;
+ }
+</style>
+
+<script>
+  import JSONFormatter from 'json-formatter-js';
+
+  export default {
+    data() {
+      return {
+        content: []
+      };
+    },
+
+    onupdate() {
+      const { content } = this.get();
+      const { refs } = this;
+
+      content.forEach(({ json }, index) => {
+        refs.responses.childNodes.forEach((node) => {
+          if (Number.parseInt(node.id) === index) {
+            if (json['TrackResponse'] && json['TrackResponse']['Disclaimer']) {
+              delete json['TrackResponse']['Disclaimer'];
+            }
+            const formatter = new JSONFormatter(json['TrackResponse']);
+            const jsonContainer = node.querySelector('.json-container');
+            jsonContainer.innerHTML = '';
+            jsonContainer.appendChild(formatter.render());
+          }
+        });
+      });
+    },
+
+    computed: {
+      normalizedContent: ({ content }) => {
+        const validContent = content.filter(({ json }) => !!json['TrackResponse']);
+        return validContent.map(({ json }) => {
+          const trackResponse = json['TrackResponse'];
+          const pkg = trackResponse['Shipment']['Package'];
+          const trackingNumber = pkg['TrackingNumber'];
+          const status = pkg['Activity']['Status']['Description'];
+          return {
+            trackingNumber,
+            status,
+            rawResponse: json
+          };
+        })
+      }
+    }
+  }
+</script>
