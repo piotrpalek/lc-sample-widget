@@ -1,11 +1,10 @@
-<div class="main">
-  <h1>UPS Packages Status</h1>
-</div>
+<TabContent content={allResponses} />
 
 <script>
   import Livechat from "@livechat/agent-app-widget-sdk";
   import { upsRegex } from './constants';
   import widgetRenderer from './widgetRenderer';
+  import TabContent from './TabContent.html';
 
   const defaultWidgetState = JSON.stringify({
     title: "UPS Packages Status",
@@ -39,6 +38,7 @@
     onupdate() {
       const { allTrackingNumbers } = this.get();
       widgetRenderer(Object.keys(allTrackingNumbers), allTrackingNumbers);
+      console.log('state: ', this.get());
     },
 
     ondestroy() {
@@ -77,10 +77,14 @@
           const response = await fetch(trackingUrl);
           const json = await response.json();
 
+          if (json['Fault']) {
+            throw json;
+          }
+
           const { allTrackingNumbers } = this.get();
           const newTrackingObject = {};
           const status = json["TrackResponse"]["Shipment"]["Package"]["Activity"]["Status"]["Description"];
-          newTrackingObject[trackingNumber] = { trackingNumber, status };
+          newTrackingObject[trackingNumber] = { trackingNumber, status, json };
           this.set({
             allTrackingNumbers: { ...allTrackingNumbers, ...newTrackingObject }
           });
@@ -88,6 +92,16 @@
           console.error(e);
         }
       }
+    },
+
+    computed: {
+      allResponses: ({ allTrackingNumbers }) => (
+        Object.keys(allTrackingNumbers).map(trackingNumber => allTrackingNumbers[trackingNumber])
+      )
+    },
+
+    components: {
+      TabContent
     }
   };
 </script>

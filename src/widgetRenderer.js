@@ -5,7 +5,7 @@ function createRow({ trackingNumber, status }) {
     {
       type: "label_value",
       data: {
-        label: "Package#: ",
+        label: "Tracking #: ",
         value: trackingNumber
       }
     },
