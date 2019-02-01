@@ -1,18 +1,20 @@
 {#if isDebug}
   <button on:click="simulateTracking()">Simulate tracking</button>
 {/if}
-<TabContent content={allResponses} />
+<TabContent trackingNumbers={allTrackingNumbers} />
 
 <script>
-  import Livechat from "@livechat/agent-app-widget-sdk";
+  import Livechat from '@livechat/agent-app-widget-sdk';
   import { upsRegex } from './constants';
   import widgetRenderer from './widgetRenderer';
   import TabContent from './TabContent.html';
+  import trackingSelector from './trackingSelector';
 
   export default {
     data() {
       return {
-        allTrackingNumbers: {},
+        rawResponseMap: {},
+        allTrackingNumbers: [],
         isDebug: true
       };
     },
@@ -20,25 +22,25 @@
     oncreate() {
       this.handleButtonClickMessage = this.handleButtonClickMessage.bind(this);
       this.handleCustomerMessage = this.handleCustomerMessage.bind(this);
-      Livechat.on("message", this.handleCustomerMessage);
+      Livechat.on('message', this.handleCustomerMessage);
       Livechat.on(
-        "customer_details_section_button_click",
+        'customer_details_section_button_click',
         this.handleButtonClickMessage
       );
     },
 
     onupdate() {
       const { allTrackingNumbers } = this.get();
-      widgetRenderer(Object.keys(allTrackingNumbers), allTrackingNumbers);
+      widgetRenderer(allTrackingNumbers);
       console.log('state: ', this.get());
     },
 
     ondestroy() {
       Livechat.off(
-        "customer_details_section_button_click",
+        'customer_details_section_button_click',
         this.handleButtonClickMessage
       );
-      Livechat.off("customer_profile", this.handleCustomerMessage);
+      Livechat.off('customer_profile', this.handleCustomerMessage);
     },
 
     methods: {
@@ -48,7 +50,7 @@
 
       async handleCustomerMessage({ message, message_source: messageSource }) {
         console.log('handling customer message: ', message);
-        if (messageSource !== "visitor") {
+        if (messageSource !== 'visitor') {
           return;
         }
 
@@ -68,18 +70,15 @@
         try {
           const response = await fetch(trackingUrl);
           const json = await response.json();
+          const trackingNumberFromResponse = trackingSelector.getTrackingNumber(json);
 
-          if (json['Fault']) {
+          if (json['Fault'] || !trackingNumberFromResponse) {
             throw json;
           }
 
-          const { allTrackingNumbers } = this.get();
-          const newTrackingObject = {};
-          const status = json["TrackResponse"]["Shipment"]["Package"]["Activity"]["Status"]["Description"];
-          newTrackingObject[trackingNumber] = { trackingNumber, status, json };
-          this.set({
-            allTrackingNumbers: { ...allTrackingNumbers, ...newTrackingObject }
-          });
+          const { rawResponseMap } = this.get();
+          rawResponseMap[trackingNumberFromResponse] = json;
+          this.set({ rawResponseMap: { ...rawResponseMap } });
         } catch (e) {
           console.error(e);
         }
@@ -99,9 +98,17 @@
     },
 
     computed: {
-      allResponses: ({ allTrackingNumbers }) => (
-        Object.keys(allTrackingNumbers).map(trackingNumber => allTrackingNumbers[trackingNumber])
-      )
+      allTrackingNumbers: ({ rawResponseMap }) => {
+        return Object.keys(rawResponseMap).map((trackingNumber) => {
+          const rawResponse = rawResponseMap[trackingNumber];
+
+          return {
+            trackingNumber: trackingSelector.getTrackingNumber(rawResponse),
+            status: trackingSelector.getStatus(rawResponse),
+            rawJson: rawResponse
+          };
+        })
+      }
     },
 
     components: {

@@ -33,8 +33,8 @@ function modifyComponentSection(componentList = []) {
   });
 }
 
-export default function(trackingNumberKeys, trackingNumbers) {
-  if (trackingNumberKeys.length === 0) {
+export default function(trackingNumberList) {
+  if (trackingNumberList.length <= 0) {
     modifyComponentSection([
       {
         type: "title",
@@ -43,9 +43,9 @@ export default function(trackingNumberKeys, trackingNumbers) {
         }
       }
     ]);
-  } else if (trackingNumberKeys.length > 0) {
-    const components = trackingNumberKeys.map((key, index) => {
-      const row = createRow(trackingNumbers[key]);
+  } else {
+    const components = trackingNumberList.map((trackingObject, index) => {
+      const row = createRow(trackingObject);
 
       if (index <= 0) {
         return row;
@@ -53,7 +53,7 @@ export default function(trackingNumberKeys, trackingNumbers) {
         return [{ type: "line" }, ...row];
       }
     });
-    const flatComponents = [].concat(...components);
-    modifyComponentSection(flatComponents);
+    const flattenedComponentsList = [].concat(...components);
+    modifyComponentSection(flattenedComponentsList);
   }
 }
