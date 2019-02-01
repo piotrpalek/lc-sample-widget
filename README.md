@@ -11,7 +11,12 @@
   "customerDetailsSections": [
     {
       "title": "Widget Integration",
-      "components": []
+      "components": [{
+        "type": "title",
+        "data": {
+          "title": "No packages found"
+        }
+      }]
     }
   ]
 }
@@ -22,6 +27,9 @@
 
 ## Development
 
+1. Setup UPS Proxy server: https://github.com/lwojciechowski/go-ups-proxy
+2. Make sure insecure https is enabled
+3. Setup App
 Install the dependencies...
 
 ```bash
