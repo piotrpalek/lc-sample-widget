@@ -50,7 +50,7 @@
           return;
         }
 
-        const trackingUrl = `http://localhost:54321/ups?tracking=${trackingNumber}`;
+        const trackingUrl = `https://localhost:54321/ups?tracking=${trackingNumber}`;
 
         try {
           const response = await fetch(trackingUrl);

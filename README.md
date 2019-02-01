@@ -28,8 +28,9 @@
 ## Development
 
 1. Setup UPS Proxy server: https://github.com/lwojciechowski/go-ups-proxy
-2. Make sure insecure https is enabled
-3. Setup App
+2. Run it
+3. Open https://localhost:54321/ in your browser and accept the insecure certificate
+4. Setup App
 Install the dependencies...
 
 ```bash
