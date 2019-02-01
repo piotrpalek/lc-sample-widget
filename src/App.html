@@ -20,36 +20,21 @@
     },
 
     oncreate() {
-      this.handleButtonClickMessage = this.handleButtonClickMessage.bind(this);
       this.handleCustomerMessage = this.handleCustomerMessage.bind(this);
       Livechat.on('message', this.handleCustomerMessage);
-      Livechat.on(
-        'customer_details_section_button_click',
-        this.handleButtonClickMessage
-      );
     },
 
     onupdate() {
       const { allTrackingNumbers } = this.get();
       widgetRenderer(allTrackingNumbers);
-      console.log('state: ', this.get());
     },
 
     ondestroy() {
-      Livechat.off(
-        'customer_details_section_button_click',
-        this.handleButtonClickMessage
-      );
       Livechat.off('customer_profile', this.handleCustomerMessage);
     },
 
     methods: {
-      async handleButtonClickMessage({ buttonId }) {
-        console.log('handling button click: ', buttonId);
-      },
-
       async handleCustomerMessage({ message, message_source: messageSource }) {
-        console.log('handling customer message: ', message);
         if (messageSource !== 'visitor') {
           return;
         }
