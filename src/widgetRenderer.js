@@ -20,7 +20,8 @@ function createRow({ trackingNumber, status }) {
       type: "button",
       data: {
         label: "Show more details",
-        id: `id-${trackingNumber}`
+        id: `id-${trackingNumber}`,
+        openApp: true
       }
     }
   ];
