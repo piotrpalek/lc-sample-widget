@@ -1,14 +1,14 @@
 export default {
-  trackingNumber: ['TrackResponse', 'Shipment', 'Package', 'TrackingNumber'],
-  status: ['TrackResponse', 'Shipment', 'Package', 'Activity', 'Status', 'Description'],
+  trackingNumberPath: ['TrackResponse', 'Shipment', 'Package', 'TrackingNumber'],
+  statusPath: ['TrackResponse', 'Shipment', 'Package', 'Activity', 'Status', 'Description'],
 
   get: (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o),
 
   getTrackingNumber(response) {
-    return this.get(this.trackingNumber, response);
+    return this.get(this.trackingNumberPath, response);
   },
 
   getStatus(response) {
-    return this.get(this.status, response);
+    return this.get(this.statusPath, response);
   }
 };

@@ -19,8 +19,16 @@ function createRow({ trackingNumber, status }) {
     {
       type: "button",
       data: {
-        label: "Show more details",
-        id: `id-${trackingNumber}`,
+        label: "Send status",
+        id: `sendstatus-${trackingNumber}`,
+        openApp: false
+      }
+    },
+    {
+      type: "button",
+      data: {
+        label: "More",
+        id: `more-${trackingNumber}`,
         openApp: true
       }
     }

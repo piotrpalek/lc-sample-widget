@@ -6,7 +6,7 @@
 <script>
   import Livechat from '@livechat/agent-app-widget-sdk';
   import { upsRegex } from './constants';
-  import widgetRenderer from './widgetRenderer';
+  import renderWidgets from './widgetRenderer';
   import TabContent from './TabContent.html';
   import trackingSelector from './trackingSelector';
 
@@ -22,36 +22,49 @@
     oncreate() {
       this.handleCustomerMessage = this.handleCustomerMessage.bind(this);
       Livechat.on('message', this.handleCustomerMessage);
+
+      this.handleButtonClickMessage = this.handleButtonClickMessage.bind(this);
+      Livechat.on('customer_details_section_button_click', this.handleButtonClickMessage);
     },
 
     onupdate() {
       const { allTrackingNumbers } = this.get();
-      widgetRenderer(allTrackingNumbers);
+      renderWidgets(allTrackingNumbers);
     },
 
     ondestroy() {
       Livechat.off('customer_profile', this.handleCustomerMessage);
+      Livechat.off('customer_details_section_button_click', this.handleButtonClickMessage);
     },
 
     methods: {
+      handleButtonClickMessage({ buttonId }) {
+        const [ buttonType, value ] = buttonId.split('-');
+        const { rawResponseMap } = this.get();
+        const trackingObject = rawResponseMap[value];
+        
+        if (buttonType === 'sendstatus' && trackingObject) {
+          const status = trackingSelector.getStatus(trackingObject);
+          Livechat.putMessage(this.createMessageForAgent(value, status));
+        }
+      },
+
       async handleCustomerMessage({ message, message_source: messageSource }) {
         if (messageSource !== 'visitor') {
           return;
         }
 
-        const result = message.match(upsRegex);
-        if (!result) {
+        const regexResult = message.match(upsRegex);
+        if (!regexResult) {
           return;
         }
 
-        const [trackingNumber] = result;
-
+        const [trackingNumber] = regexResult;
         if (!trackingNumber) {
           return;
         }
 
         const trackingUrl = `https://localhost:54321/ups?tracking=${trackingNumber}`;
-
         try {
           const response = await fetch(trackingUrl);
           const json = await response.json();
@@ -69,12 +82,16 @@
         }
       },
 
+      createMessageForAgent(trackingNumber, status) {
+        return `${trackingNumber}\nPackage status:\n${status}`;
+      },
+
       simulateTracking() {
         function getRandomInt(min, max) {
           return Math.floor(Math.random() * (max - min + 1) + min);
         }
   
-        const debugTrackingNumbers = ['1Z648616E192760718', '1ZWX0692YP40636269', '1Z12345E1305277940'];
+        const debugTrackingNumbers = ['1Z648616E192760718', '1ZWX0692YP40636269', '1Z12345E1305277940', '1Z12345E1505270452', '1Z12345E0205271688'];
         this.handleCustomerMessage({ 
           message: debugTrackingNumbers[getRandomInt(0, 2)],
           message_source: 'visitor'
