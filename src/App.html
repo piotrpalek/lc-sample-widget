@@ -1,7 +1,15 @@
-{#if isDebug}
-  <button on:click="simulateTracking()">Simulate tracking</button>
-{/if}
-<TabContent trackingNumbers={allTrackingNumbers} />
+<div id="mainApp">
+  {#if isDebug}
+    <button on:click="simulateTracking()">Simulate tracking</button>
+  {/if}
+  <TabContent trackingNumbers={allTrackingNumbers} />
+</div>
+
+<style>
+  #mainApp {
+    padding: 20px;
+  }
+</style>
 
 <script>
   import Livechat from '@livechat/agent-app-widget-sdk';

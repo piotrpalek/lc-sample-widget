@@ -3,15 +3,66 @@
 <ul>
   {#each trackingNumbers as trackingObject}
     <li>
-      <div class="value-box"></div>
+      <h1>{trackingObject.trackingNumber}</h1>
+      <div class="label-value-box">
+        <div class="label">Status:</div>
+        <div class="value">{trackingObject.status}</div>
+      </div>
     </li>
   {/each}
 </ul>
 
 <style>
- ul {
-   list-style: none;
- }
+  h1 {
+    font-family: Lato, Helvetica, Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #424d57;
+  }
+
+  hr {
+    border: 0; 
+    height: 1px; 
+    background: #dedede; 
+    margin: 14px 0 40px 0;
+  }
+
+  ul {
+    list-style: none;
+  }
+
+  ul li {
+    margin-bottom: 40px;
+  }
+
+  ul h1 {
+    font-size: 18px;
+    padding-left: 10px;
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  ul h1::before {
+    content: url('/img/location-searching.svg');
+    position: absolute;
+    left: -10px;
+    top: 2px;
+  }
+
+  .label-value-box {
+    margin-left: 10px;
+    font-size: 15px;
+    color: #424d57;
+    margin-bottom: 10px;
+  }
+
+  .label {
+    color: rgba(66, 77, 87, 0.6);
+  }
+
+  .value {
+    text-transform: capitalize;
+  }
 </style>
 
 <script>
