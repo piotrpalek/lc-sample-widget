@@ -1,13 +1,13 @@
 export default {
-  trackingNumberPath: ['TrackResponse', 'Shipment', 'Package', 'TrackingNumber'],
-  statusPath: ['TrackResponse', 'Shipment', 'Package', 'Activity', 'Status', 'Description'],
-  servicePath: ['TrackResponse', 'Shipment', 'Service', 'Description'],
-  pickupDatePath: ['TrackResponse', 'Shipment', 'PickupDate'],
-  weightPath: ['TrackResponse', 'Shipment', 'Package', 'PackageWeight'],
-  shipmentTypePath: ['TrackResponse', 'Shipment', 'ShipmentType', 'Code'],
-  packagingUnitsPath: ['TrackResponse', 'Shipment', 'Package'], // TODO
+  trackingNumberPath: 'TrackResponse/Shipment/Package/TrackingNumber',
+  statusPath: 'TrackResponse/Shipment/Package/Activity/Status/Description',
+  servicePath: 'TrackResponse/Shipment/Service/Description',
+  pickupDatePath: 'TrackResponse/Shipment/PickupDate',
+  weightPath: 'TrackResponse/Shipment/Package/PackageWeight',
+  shipmentTypePath: 'TrackResponse/Shipment/ShipmentType/Code',
+  packagingUnitsPath: 'TrackResponse/Shipment/ShipmentType/Code', // TODO
 
-  get: (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o),
+  get: (p, o) => p.split('/').reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o),
 
   getTrackingNumber(response) {
     return this.get(this.trackingNumberPath, response);
