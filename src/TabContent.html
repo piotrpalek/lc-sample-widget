@@ -1,54 +1,25 @@
-<h1>UPS Packages Status</h1>
-<ul ref:responses>
-  {#each trackingNumbers as trackingObject, index}
-    <li id={index}>
-      <h1>Tracking #: {trackingObject.trackingNumber}</h1>
-      <div class="json-container"></div>
+<h1>UPS Delivery Status</h1>
+<hr>
+<ul>
+  {#each trackingNumbers as trackingObject}
+    <li>
+      <div class="value-box"></div>
     </li>
   {/each}
 </ul>
 
 <style>
- h1 {
-   font-size: 16px;
- }
-
  ul {
    list-style: none;
- }
-
- :global(.json-formatter-string) {
-   white-space: normal!important;
  }
 </style>
 
 <script>
-  import JSONFormatter from 'json-formatter-js';
-
   export default {
     data() {
       return {
         trackingNumbers: []
       };
-    },
-
-    onupdate() {
-      const { trackingNumbers } = this.get();
-      const { refs } = this;
-
-      trackingNumbers.forEach(({ rawJson }, index) => {
-        refs.responses.childNodes.forEach((node) => {
-          if (Number.parseInt(node.id) === index) {
-            if (rawJson['TrackResponse']['Disclaimer']) {
-              delete rawJson['TrackResponse']['Disclaimer'];
-            }
-            const formatter = new JSONFormatter(rawJson['TrackResponse']);
-            const jsonContainer = node.querySelector('.json-container');
-            jsonContainer.innerHTML = '';
-            jsonContainer.appendChild(formatter.render());
-          }
-        });
-      });
     }
   }
 </script>
