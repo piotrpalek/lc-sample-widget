@@ -114,7 +114,7 @@
 
           return {
             trackingNumber: trackingSelector.getTrackingNumber(rawResponse),
-            status: trackingSelector.getStatus(rawResponse),
+            trackingValues: trackingSelector.getValues(rawResponse),
             rawJson: rawResponse
           };
         })
