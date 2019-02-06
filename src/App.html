@@ -26,29 +26,43 @@
       return {
         rawResponseMap: {},
         allTrackingNumbers: [],
-        isDebug: false
+        currentChat: '',
+        isDebug: true
       };
     },
 
     oncreate() {
+      this.handleCustomerProfile = this.handleCustomerProfile.bind(this);
+      Livechat.on("customer_profile", this.handleCustomerProfile);
+
       this.handleCustomerMessage = this.handleCustomerMessage.bind(this);
       Livechat.on('message', this.handleCustomerMessage);
 
       this.handleButtonClickMessage = this.handleButtonClickMessage.bind(this);
       Livechat.on('customer_details_section_button_click', this.handleButtonClickMessage);
+
+      const responseCache = localStorage.getItem('responseCache') || '{}';
+      this.set({ rawResponseMap: JSON.parse(responseCache) });
     },
 
     onupdate() {
-      const { allTrackingNumbers } = this.get();
+      const { allTrackingNumbers, rawResponseMap } = this.get();
       renderWidgets(allTrackingNumbers);
+      //localStorage.setItem('responseCache', JSON.stringify(rawResponseMap));
     },
 
     ondestroy() {
-      Livechat.off('customer_profile', this.handleCustomerMessage);
+      Livechat.off('customer_profile', this.handleCustomerProfile);
+      Livechat.off('message', this.handleCustomerMessage);
       Livechat.off('customer_details_section_button_click', this.handleButtonClickMessage);
     },
 
     methods: {
+      handleCustomerProfile({ chat: { id: chatId } }) {
+        this.set({ currentChat: chatId });
+        console.log('currentChat: ', chatId);
+      },
+
       handleSendStatusLinkClick(trackingNumber) {
         const { rawResponseMap } = this.get();
         const trackingObject = rawResponseMap[trackingNumber];
@@ -70,7 +84,7 @@
         }
       },
 
-      async handleCustomerMessage({ message, message_source: messageSource }, attempt = 0) {
+      async handleCustomerMessage({ chat, message, message_source: messageSource }, attempt = 0) {
         if (messageSource !== 'visitor') {
           return;
         }
@@ -92,11 +106,17 @@
           const trackingNumberFromResponse = trackingSelector.getTrackingNumber(json);
 
           if (json['Fault'] || !trackingNumberFromResponse) {
-            throw { json, trackingNumber };
+            throw { json, trackingNumber, chat };
           }
 
           const { rawResponseMap } = this.get();
-          rawResponseMap[trackingNumberFromResponse] = json;
+
+          if (!rawResponseMap[chat]) {
+            rawResponseMap[chat] = {};
+          }
+
+          const rawResponseMapForChat = rawResponseMap[chat];
+          rawResponseMapForChat[trackingNumberFromResponse] = json;
           this.set({ rawResponseMap: { ...rawResponseMap } });
         } catch (e) {
           console.error(e);
@@ -107,7 +127,7 @@
           if (errorCode === '10001' && attempt < 5) {
             setTimeout(() => {
               console.log(`Attempt #[${attempt}] - Retrying to fetch from UPS API.`)
-              this.handleCustomerMessage({ message: trackingNumber, message_source: 'visitor' }, attempt + 1);
+              this.handleCustomerMessage({ message, chat, message_source: messageSource }, attempt + 1);
             }, 500);
             return;
           }
@@ -115,8 +135,12 @@
           const errorDescription = trackingSelector.getErrorDescription(json);
           if (errorDescription) {
             const { rawResponseMap } = this.get();
-            
-            rawResponseMap[trackingNumber] = { trackingNumber, errorMessage: errorDescription };
+            if (!rawResponseMap[chat]) {
+              rawResponseMap[chat] = {};
+            }
+
+            const rawResponseMapForChat = rawResponseMap[chat];    
+            rawResponseMapForChat[trackingNumber] = { trackingNumber, errorMessage: errorDescription };
             this.set({ rawResponseMap: { ...rawResponseMap } });
           }
         }
@@ -128,9 +152,13 @@
     },
 
     computed: {
-      allTrackingNumbers: ({ rawResponseMap }) => {
-        return Object.keys(rawResponseMap).map((trackingNumber) => {
-          const rawResponse = rawResponseMap[trackingNumber];
+      allTrackingNumbers: ({ rawResponseMap, currentChat }) => {
+        console.log('rawResponseMap: ', rawResponseMap);
+        console.log('currentChat: ', currentChat);
+        const rawResponseMapForChat = rawResponseMap[currentChat] || {};
+        console.log('allTrackingNumbers computed: ', rawResponseMapForChat);
+        return Object.keys(rawResponseMapForChat).map((trackingNumber) => {
+          const rawResponse = rawResponseMapForChat[trackingNumber];
 
           if (rawResponse.errorMessage) {
             return { 

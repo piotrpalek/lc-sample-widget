@@ -1,5 +1,9 @@
 import Livechat from "@livechat/agent-app-widget-sdk";
 
+function capitalize(string) {
+  return string && string.replace && string.replace(/\b\w/g, l => l.toUpperCase());
+}
+
 function createRow({ trackingNumber, status }) {
   return [
     {
@@ -13,7 +17,7 @@ function createRow({ trackingNumber, status }) {
       type: "label_value",
       data: {
         label: "Status: ",
-        value: status
+        value: capitalize(status)
       }
     },
     {
@@ -53,8 +57,9 @@ export default function(trackingNumberList) {
       }
     ]);
   } else {
-    const components = trackingNumberList.map((trackingObject, index) => {
-      const row = createRow(trackingObject);
+    const components = trackingNumberList.map(({ trackingNumber, trackingValues }, index) => {
+      const statusObject = trackingValues.find(valueObject => valueObject.type === 'status');
+      const row = createRow({ trackingNumber, status: statusObject.value });
 
       if (index <= 0) {
         return row;
