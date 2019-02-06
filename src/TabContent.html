@@ -10,7 +10,9 @@
           <div class="label">{trackingValue.label}:</div>
           <div class="value">{trackingValue.value}</div>
           {#if trackingValue.type == 'status'}
-            <a href="javascript:;" on:click="fire('sendStatusClick', trackingObject.trackingNumber)">Send status to customer</a>
+            <a href="javascript:;" on:click="fire('sendStatusClick', trackingObject.trackingNumber)">
+              Send status to customer
+            </a>
           {/if}
         </div>
         {/if}
