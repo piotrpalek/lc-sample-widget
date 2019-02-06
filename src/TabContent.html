@@ -1,4 +1,4 @@
-<h1>UPS Delivery Status</h1>
+<h1 class="app-title">UPS Delivery Status</h1>
 <hr>
 <ul>
   {#each trackingNumbers as trackingObject}
@@ -28,24 +28,26 @@
 </ul>
 
 <style>
-  h1 {
+  .app-title {
     font-family: SourceSansPro, Lato, Helvetica, Arial, sans-serif;
     font-size: 20px;
     font-weight: bold;
     color: #424d57;
     line-height: 1.3;
+    margin: 14px 0;
   }
 
   hr {
     border: 0; 
     height: 1px; 
-    background: #dde2e6; 
-    margin: 14px 0 40px 0;
+    background: #dde2e6;
+    margin: 0;
   }
 
   ul {
     list-style: none;
     margin-left: 10px;
+    margin-top: 40px;
   }
 
   ul li {
