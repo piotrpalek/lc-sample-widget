@@ -1,3 +1,12 @@
+function toCamelCase(str) {
+  str = str.replace(/[-_\s]+(.)?/g, (match, ch) => // eslint-disable-line no-param-reassign
+    (ch ? ch.toUpperCase() : ''),
+  );
+
+  // Ensure first chat is always lowercase
+  return str.substr(0, 1).toLowerCase() + str.substr(1);
+};
+
 export default {
   trackingNumberPath: 'TrackResponse/Shipment/Package/TrackingNumber',
   statusPath: 'TrackResponse/Shipment/Package/Activity/Status/Description',
@@ -72,12 +81,22 @@ export default {
 
   getValues(response) {
     return [
+      { type: 'tracking-number', label: 'Tracking number', value: this.getTrackingNumber(response) },
       { type: 'status', label: 'Status', value: this.getStatus(response) },
       { type: 'service', label: 'Service', value: this.getService(response) },
       { type: 'pickup-date', label: 'Pickup date', value: this.getPickupDate(response) },
       { type: 'weight', label: 'Weight', value: this.getWeight(response) },
       { type: 'shipment-type', label: 'Shipment type', value: this.getShipmentType(response) },
       { type: 'packaging-units', label: 'Number of packaging units', value: this.getPackagingUnits(response) },
+      { type: 'error-description', label: 'Error Description', value: this.getErrorDescription(response) },
+      { type: 'error-code', label: 'Error Code', value: this.getErrorCode(response) },
     ];
+  },
+
+  getValueMap(response) {
+    return this.getValues(response).reduce((acc, value) => {
+      acc[toCamelCase(value.type)] = value;
+      return acc;
+    }, {});
   }
 };

@@ -1,6 +1,6 @@
 <Debug chat={currentChat} isVisible={isDebug} on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
-  <TabContent trackingNumbers={allTrackingNumbers} on:sendStatusClick="handleSendStatusLinkClick(event)" />
+  <TabContent trackingNumbers={[]} on:sendStatusClick="handleSendStatusLinkClick(event)" />
 </div>
 
 <style>
@@ -15,8 +15,8 @@
 
 <script>
   import Livechat from '@livechat/agent-app-widget-sdk';
-  import { upsRegex } from './constants';
-  import renderWidgets, { capitalize } from './widgetRenderer';
+  import { upsRegex, capitalize } from './helpers';
+  import renderWidgets from './widgetRenderer';
   import TabContent from './TabContent.html';
   import Debug from './Debug';
   import trackingSelector from './trackingSelector';
@@ -25,7 +25,7 @@
     data() {
       return {
         rawResponseMap: {},
-        allTrackingNumbers: [],
+        normalizedTrackingData: [],
         currentChat: '',
         isDebug: true
       };
@@ -46,8 +46,8 @@
     },
 
     onupdate() {
-      const { allTrackingNumbers, rawResponseMap } = this.get();
-      renderWidgets(allTrackingNumbers);
+      const { normalizedTrackingData, rawResponseMap } = this.get();
+      renderWidgets(normalizedTrackingData);
       //localStorage.setItem('responseCache', JSON.stringify(rawResponseMap));
     },
 
@@ -63,24 +63,19 @@
       },
 
       handleSendStatusLinkClick(trackingNumber) {
-        const { rawResponseMap, currentChat } = this.get();
-        const rawResponseMapForChat = rawResponseMap[currentChat];
-        const trackingObject = rawResponseMapForChat[trackingNumber];
+        const { status } = this.getTrackingObject(trackingNumber);
         
-        if (trackingObject) {
-          const status = trackingSelector.getStatus(trackingObject);
-          Livechat.putMessage(this.createMessageForAgent(trackingNumber, status));
+        if (status && status.value) {
+          Livechat.putMessage(this.createMessageForAgent(trackingNumber, status.value));
         }
       },
 
       handleButtonClickMessage({ buttonId }) {
         const [ buttonType, value ] = buttonId.split('-');
-        const { rawResponseMap } = this.get();
-        const trackingObject = rawResponseMap[value];
+        const { status } = this.getTrackingObject(value);
         
-        if (buttonType === 'sendstatus' && trackingObject) {
-          const status = trackingSelector.getStatus(trackingObject);
-          Livechat.putMessage(this.createMessageForAgent(value, status));
+        if (buttonType === 'sendstatus' && status && status.value) {
+          Livechat.putMessage(this.createMessageForAgent(value, status.value));
         }
       },
 
@@ -103,24 +98,6 @@
         try {
           const response = await fetch(trackingUrl);
           const json = await response.json();
-          const trackingNumberFromResponse = trackingSelector.getTrackingNumber(json);
-
-          if (json['Fault'] || !trackingNumberFromResponse) {
-            throw { json, trackingNumber, chat };
-          }
-
-          const { rawResponseMap } = this.get();
-
-          if (!rawResponseMap[chat]) {
-            rawResponseMap[chat] = {};
-          }
-
-          const rawResponseMapForChat = rawResponseMap[chat];
-          rawResponseMapForChat[trackingNumberFromResponse] = json;
-          this.set({ rawResponseMap: { ...rawResponseMap } });
-        } catch (e) {
-          console.error(e);
-          const { json, trackingNumber } = e;
           const errorCode = trackingSelector.getErrorCode(json);
 
           // API sometimes doesn't work, workaround:
@@ -132,45 +109,37 @@
             return;
           }
 
-          const errorDescription = trackingSelector.getErrorDescription(json);
-          if (errorDescription) {
-            const { rawResponseMap } = this.get();
-            if (!rawResponseMap[chat]) {
-              rawResponseMap[chat] = {};
-            }
+          const { rawResponseMap } = this.get();
 
-            const rawResponseMapForChat = rawResponseMap[chat];    
-            rawResponseMapForChat[trackingNumber] = { trackingNumber, errorMessage: errorDescription };
-            this.set({ rawResponseMap: { ...rawResponseMap } });
+          if (!rawResponseMap[chat]) {
+            rawResponseMap[chat] = {};
           }
+
+          const rawResponseMapForChat = rawResponseMap[chat];
+          rawResponseMapForChat[trackingNumber] = { trackingNumber, ...json };
+          this.set({ rawResponseMap: { ...rawResponseMap } });
+        } catch (e) {
+          console.error(e);
         }
       },
 
       createMessageForAgent(trackingNumber, status) {
         return `${trackingNumber}\nPackage status:\n${capitalize(status)}`;
+      },
+
+      getTrackingObject(query) {
+        const { normalizedTrackingData } = this.get();
+        return normalizedTrackingData.find(({ trackingNumber }) => trackingNumber.value === query);
       }
     },
 
     computed: {
-      allTrackingNumbers: ({ rawResponseMap, currentChat }) => {
+      normalizedTrackingData: ({ rawResponseMap, currentChat }) => {
         const rawResponseMapForChat = rawResponseMap[currentChat] || {};
         return Object.keys(rawResponseMapForChat).map((trackingNumber) => {
           const rawResponse = rawResponseMapForChat[trackingNumber];
-
-          if (rawResponse.errorMessage) {
-            return { 
-              trackingNumber: rawResponse.trackingNumber,
-              errorMessage: rawResponse.errorMessage,
-              trackingValues: []
-            };
-          } else {
-            return {
-              trackingNumber: trackingSelector.getTrackingNumber(rawResponse),
-              trackingValues: trackingSelector.getValues(rawResponse),
-              rawJson: rawResponse
-            };
-          }
-        })
+          return trackingSelector.getValueMap(rawResponse)
+        });
       }
     },
 
