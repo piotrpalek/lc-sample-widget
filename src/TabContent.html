@@ -6,9 +6,12 @@
       <h1>{trackingObject.trackingNumber}</h1>
       {#each trackingObject.trackingValues as trackingValue}
         {#if trackingValue.value}
-        <div class="label-value-box">
+        <div class="label-value-box type-{trackingValue.type}">
           <div class="label">{trackingValue.label}:</div>
           <div class="value">{trackingValue.value}</div>
+          {#if trackingValue.type == 'status'}
+            <a href="javascript:;" on:click="fire('sendStatusClick', trackingObject.trackingNumber)">Send status to customer</a>
+          {/if}
         </div>
         {/if}
       {/each}
@@ -68,6 +71,15 @@
 
   .value {
     text-transform: capitalize;
+  }
+
+  .label-value-box.type-status .value {
+    font-weight: bold;
+  }
+
+  .label-value-box a {
+    text-decoration: none;
+    color: #4384f5;
   }
 </style>
 

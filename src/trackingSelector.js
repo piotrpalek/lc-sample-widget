@@ -54,12 +54,12 @@ export default {
 
   getValues(response) {
     return [
-      { label: 'Status', value: this.getStatus(response) },
-      { label: 'Service', value: this.getService(response) },
-      { label: 'Pickup date', value: this.getPickupDate(response) },
-      { label: 'Weight', value: this.getWeight(response) },
-      { label: 'Shipment type', value: this.getShipmentType(response) },
-      { label: 'Number of packaging units', value: this.getPackagingUnits(response) },
+      { type: 'status', label: 'Status', value: this.getStatus(response) },
+      { type: 'service', label: 'Service', value: this.getService(response) },
+      { type: 'pickup-date', label: 'Pickup date', value: this.getPickupDate(response) },
+      { type: 'weight', label: 'Weight', value: this.getWeight(response) },
+      { type: 'shipment-type', label: 'Shipment type', value: this.getShipmentType(response) },
+      { type: 'packaging-units', label: 'Number of packaging units', value: this.getPackagingUnits(response) },
     ];
   }
 };

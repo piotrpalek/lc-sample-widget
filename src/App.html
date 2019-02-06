@@ -1,6 +1,6 @@
 <Debug isVisible={isDebug} on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
-  <TabContent trackingNumbers={allTrackingNumbers} />
+  <TabContent trackingNumbers={allTrackingNumbers} on:sendStatusClick="handleSendStatusLinkClick(event)" />
 </div>
 
 <style>
@@ -49,6 +49,16 @@
     },
 
     methods: {
+      handleSendStatusLinkClick(trackingNumber) {
+        const { rawResponseMap } = this.get();
+        const trackingObject = rawResponseMap[trackingNumber];
+        
+        if (trackingObject) {
+          const status = trackingSelector.getStatus(trackingObject);
+          Livechat.putMessage(this.createMessageForAgent(trackingNumber, status));
+        }
+      },
+
       handleButtonClickMessage({ buttonId }) {
         const [ buttonType, value ] = buttonId.split('-');
         const { rawResponseMap } = this.get();
