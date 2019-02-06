@@ -1,6 +1,6 @@
 <Debug chat={currentChat} isVisible={isDebug} on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
-  <TabContent trackingNumbers={[]} on:sendStatusClick="handleSendStatusLinkClick(event)" />
+  <TabContent trackingNumbers={normalizedTrackingData} on:sendStatusClick="handleSendStatusLinkClick(event)" />
 </div>
 
 <style>
@@ -47,6 +47,7 @@
 
     onupdate() {
       const { normalizedTrackingData, rawResponseMap } = this.get();
+      console.log(normalizedTrackingData);
       renderWidgets(normalizedTrackingData);
       //localStorage.setItem('responseCache', JSON.stringify(rawResponseMap));
     },
@@ -116,7 +117,7 @@
           }
 
           const rawResponseMapForChat = rawResponseMap[chat];
-          rawResponseMapForChat[trackingNumber] = { trackingNumber, ...json };
+          rawResponseMapForChat[trackingNumber] = json;
           this.set({ rawResponseMap: { ...rawResponseMap } });
         } catch (e) {
           console.error(e);
@@ -138,7 +139,10 @@
         const rawResponseMapForChat = rawResponseMap[currentChat] || {};
         return Object.keys(rawResponseMapForChat).map((trackingNumber) => {
           const rawResponse = rawResponseMapForChat[trackingNumber];
-          return trackingSelector.getValueMap(rawResponse)
+          return { 
+            ...trackingSelector.getValueMap(rawResponse), 
+            trackingNumber: { value: trackingNumber } 
+          };
         });
       }
     },

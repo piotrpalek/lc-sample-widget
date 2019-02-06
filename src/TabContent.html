@@ -3,8 +3,8 @@
 <ul>
   {#each trackingNumbers as trackingObject}
     <li>
-      <h1>{trackingObject.trackingNumber}</h1>
-      {#each trackingObject.trackingValues as trackingValue}
+      <h1>{trackingObject.trackingNumber.value}</h1>
+      {#each validEntries(trackingObject) as trackingValue}
         {#if trackingValue.value}
         <div class="label-value-box type-{trackingValue.type}">
           <div class="label">{trackingValue.label}:</div>
@@ -18,9 +18,9 @@
         {/if}
       {/each}
 
-      {#if trackingObject.errorMessage}
+      {#if trackingObject.errorDescription.value}
         <div class="error-message">
-          <p>{trackingObject.errorMessage}</p>
+          <p>{trackingObject.errorDescription.value}</p>
         </div>
       {/if}
     </li>
@@ -104,6 +104,14 @@
 
 <script>
   export default {
+    helpers: {
+      validEntries: function(trackingObject) {
+        const excluded = ['error-code', 'error-description'];
+        const allEntries = Object.keys(trackingObject).map(key => trackingObject[key]);
+        return allEntries.filter(entry => entry.label && entry.value && !excluded.includes(entry.type));
+      }
+    },
+
     data() {
       return {
         trackingNumbers: []

@@ -81,7 +81,6 @@ export default {
 
   getValues(response) {
     return [
-      { type: 'tracking-number', label: 'Tracking number', value: this.getTrackingNumber(response) },
       { type: 'status', label: 'Status', value: this.getStatus(response) },
       { type: 'service', label: 'Service', value: this.getService(response) },
       { type: 'pickup-date', label: 'Pickup date', value: this.getPickupDate(response) },
