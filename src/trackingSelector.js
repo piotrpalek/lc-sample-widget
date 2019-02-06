@@ -5,7 +5,7 @@ export default {
   pickupDatePath: 'TrackResponse/Shipment/PickupDate',
   weightPath: 'TrackResponse/Shipment/Package/PackageWeight',
   shipmentTypePath: 'TrackResponse/Shipment/ShipmentType/Code',
-  packagingUnitsPath: 'TrackResponse/Shipment/ShipmentType/Code', // TODO
+  packagingUnitsPath: 'TrackResponse/Shipment/NumberOfPackagingUnit/Type/Description',
 
   get: (p, o) => p.split('/').reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o),
 
@@ -22,7 +22,11 @@ export default {
   },
 
   getPickupDate(response) {
-    return this.get(this.pickupDatePath, response);
+    const dateString = this.get(this.pickupDatePath, response);
+    const year = dateString.slice(0, 4);
+    const month = dateString.slice(4, 6);
+    const day = dateString.slice(6, 8);
+    return `${year}/${month}/${day}`;
   },
 
   getWeight(response) {

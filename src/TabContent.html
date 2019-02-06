@@ -5,10 +5,12 @@
     <li>
       <h1>{trackingObject.trackingNumber}</h1>
       {#each trackingObject.trackingValues as trackingValue}
+        {#if trackingValue.value}
         <div class="label-value-box">
           <div class="label">{trackingValue.label}:</div>
           <div class="value">{trackingValue.value}</div>
         </div>
+        {/if}
       {/each}
     </li>
   {/each}
