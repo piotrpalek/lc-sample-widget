@@ -1,4 +1,4 @@
-<Debug isVisible={isDebug} on:loadTrackingNumber="handleCustomerMessage(event)" />
+<Debug chat={currentChat} isVisible={isDebug} on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
   <TabContent trackingNumbers={allTrackingNumbers} on:sendStatusClick="handleSendStatusLinkClick(event)" />
 </div>

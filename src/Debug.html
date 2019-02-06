@@ -14,7 +14,7 @@
 <script>
   export default {
     methods: {
-      simulateTracking() {
+      simulateTracking(currentChat) {
         function getRandomInt(min, max) {
           return Math.floor(Math.random() * (max - min + 1) + min);
         }
@@ -24,14 +24,16 @@
 
         this.fire('loadTrackingNumber', { 
           message: debugTrackingNumbers[getRandomInt(0, debugTrackingNumbers.length - 1)],
-          message_source: 'visitor'
+          message_source: 'visitor',
+          chat: this.get().chat
         });
       },
 
-      noTrackingInfo() {
+      noTrackingInfo(currentChat) {
         this.fire('loadTrackingNumber', { 
           message: '1Z12345E1505270452',
-          message_source: 'visitor'
+          message_source: 'visitor',
+          chat: this.get().chat
         });
       }
     }

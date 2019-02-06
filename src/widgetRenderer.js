@@ -58,7 +58,7 @@ export default function(trackingNumberList) {
     ]);
   } else {
     const components = trackingNumberList.map(({ trackingNumber, trackingValues }, index) => {
-      const statusObject = trackingValues.find(valueObject => valueObject.type === 'status');
+      const statusObject = trackingValues.find(valueObject => valueObject.type === 'status') || { value: '' };
       const row = createRow({ trackingNumber, status: statusObject.value });
 
       if (index <= 0) {
