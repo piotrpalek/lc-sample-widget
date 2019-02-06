@@ -60,7 +60,6 @@
     methods: {
       handleCustomerProfile({ chat: { id: chatId } }) {
         this.set({ currentChat: chatId });
-        console.log('currentChat: ', chatId);
       },
 
       handleSendStatusLinkClick(trackingNumber) {
@@ -154,10 +153,7 @@
 
     computed: {
       allTrackingNumbers: ({ rawResponseMap, currentChat }) => {
-        console.log('rawResponseMap: ', rawResponseMap);
-        console.log('currentChat: ', currentChat);
         const rawResponseMapForChat = rawResponseMap[currentChat] || {};
-        console.log('allTrackingNumbers computed: ', rawResponseMapForChat);
         return Object.keys(rawResponseMapForChat).map((trackingNumber) => {
           const rawResponse = rawResponseMapForChat[trackingNumber];
 
