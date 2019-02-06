@@ -16,7 +16,7 @@
 <script>
   import Livechat from '@livechat/agent-app-widget-sdk';
   import { upsRegex } from './constants';
-  import renderWidgets from './widgetRenderer';
+  import renderWidgets, { capitalize } from './widgetRenderer';
   import TabContent from './TabContent.html';
   import Debug from './Debug';
   import trackingSelector from './trackingSelector';
@@ -64,8 +64,9 @@
       },
 
       handleSendStatusLinkClick(trackingNumber) {
-        const { rawResponseMap } = this.get();
-        const trackingObject = rawResponseMap[trackingNumber];
+        const { rawResponseMap, currentChat } = this.get();
+        const rawResponseMapForChat = rawResponseMap[currentChat];
+        const trackingObject = rawResponseMapForChat[trackingNumber];
         
         if (trackingObject) {
           const status = trackingSelector.getStatus(trackingObject);
@@ -147,7 +148,7 @@
       },
 
       createMessageForAgent(trackingNumber, status) {
-        return `${trackingNumber}\nPackage status:\n${status}`;
+        return `${trackingNumber}\nPackage status:\n${capitalize(status)}`;
       }
     },
 

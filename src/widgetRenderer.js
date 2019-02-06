@@ -1,6 +1,6 @@
 import Livechat from "@livechat/agent-app-widget-sdk";
 
-function capitalize(string) {
+export function capitalize(string) {
   return string && string.replace && string.replace(/\b\w/g, l => l.toUpperCase());
 }
 
