@@ -14,7 +14,8 @@ export default {
   },
 
   getStatus(response) {
-    return this.get(this.statusPath, response);
+    const status = this.get(this.statusPath, response);
+    return status && status.toLowerCase();
   },
 
   getService(response) {
