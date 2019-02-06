@@ -15,6 +15,12 @@
         </div>
         {/if}
       {/each}
+
+      {#if trackingObject.errorMessage}
+        <div class="error-message">
+          <p>{trackingObject.errorMessage}</p>
+        </div>
+      {/if}
     </li>
   {/each}
 </ul>

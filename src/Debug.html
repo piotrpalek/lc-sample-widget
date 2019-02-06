@@ -1,6 +1,7 @@
 {#if isVisible}
 <div class="debug">
     <button on:click="simulateTracking()">random tracking</button>
+    <button on:click="noTrackingInfo()">no tracking info</button>
 </div>
 {/if}
 
@@ -23,6 +24,13 @@
 
         this.fire('loadTrackingNumber', { 
           message: debugTrackingNumbers[getRandomInt(0, debugTrackingNumbers.length - 1)],
+          message_source: 'visitor'
+        });
+      },
+
+      noTrackingInfo() {
+        this.fire('loadTrackingNumber', { 
+          message: '1Z12345E1505270452',
           message_source: 'visitor'
         });
       }

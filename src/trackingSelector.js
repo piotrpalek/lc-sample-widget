@@ -6,6 +6,8 @@ export default {
   weightPath: 'TrackResponse/Shipment/Package/PackageWeight',
   shipmentTypePath: 'TrackResponse/Shipment/ShipmentType/Code',
   packagingUnitsPath: 'TrackResponse/Shipment/NumberOfPackagingUnit/Type/Description',
+  errorDescriptionPath: 'Fault/detail/Errors/ErrorDetail/PrimaryErrorCode/Description',
+  errorCodePath: 'Fault/detail/Errors/ErrorDetail/PrimaryErrorCode/Code',
 
   get: (p, o) => p.split('/').reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o),
 
@@ -24,6 +26,10 @@ export default {
 
   getPickupDate(response) {
     const dateString = this.get(this.pickupDatePath, response);
+    if (!dateString) {
+      return '';
+    }
+
     const year = dateString.slice(0, 4);
     const month = dateString.slice(4, 6);
     const day = dateString.slice(6, 8);
@@ -32,6 +38,10 @@ export default {
 
   getWeight(response) {
     const weightObject = this.get(this.weightPath, response);
+    if (!weightObject) {
+      return '';
+    }
+
     const unit = weightObject['UnitOfMeasurement']['Code'];
     const weight = weightObject['Weight'];
     return `${weight} ${unit}`.toLowerCase();
@@ -50,6 +60,14 @@ export default {
 
   getPackagingUnits(response) {
     return this.get(this.packagingUnitsPath, response);
+  },
+
+  getErrorDescription(response) {
+    return this.get(this.errorDescriptionPath, response);
+  },
+
+  getErrorCode(response) {
+    return this.get(this.errorCodePath, response);
   },
 
   getValues(response) {

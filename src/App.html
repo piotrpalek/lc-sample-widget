@@ -70,7 +70,7 @@
         }
       },
 
-      async handleCustomerMessage({ message, message_source: messageSource }) {
+      async handleCustomerMessage({ message, message_source: messageSource }, attempt = 0) {
         if (messageSource !== 'visitor') {
           return;
         }
@@ -92,7 +92,7 @@
           const trackingNumberFromResponse = trackingSelector.getTrackingNumber(json);
 
           if (json['Fault'] || !trackingNumberFromResponse) {
-            throw json;
+            throw { json, trackingNumber };
           }
 
           const { rawResponseMap } = this.get();
@@ -100,6 +100,25 @@
           this.set({ rawResponseMap: { ...rawResponseMap } });
         } catch (e) {
           console.error(e);
+          const { json, trackingNumber } = e;
+          const errorCode = trackingSelector.getErrorCode(json);
+
+          // API sometimes doesn't work, workaround:
+          if (errorCode === '10001' && attempt < 5) {
+            setTimeout(() => {
+              console.log(`Attempt #[${attempt}] - Retrying to fetch from UPS API.`)
+              this.handleCustomerMessage({ message: trackingNumber, message_source: 'visitor' }, attempt + 1);
+            }, 500);
+            return;
+          }
+
+          const errorDescription = trackingSelector.getErrorDescription(json);
+          if (errorDescription) {
+            const { rawResponseMap } = this.get();
+            
+            rawResponseMap[trackingNumber] = { trackingNumber, errorMessage: errorDescription };
+            this.set({ rawResponseMap: { ...rawResponseMap } });
+          }
         }
       },
 
@@ -113,11 +132,19 @@
         return Object.keys(rawResponseMap).map((trackingNumber) => {
           const rawResponse = rawResponseMap[trackingNumber];
 
-          return {
-            trackingNumber: trackingSelector.getTrackingNumber(rawResponse),
-            trackingValues: trackingSelector.getValues(rawResponse),
-            rawJson: rawResponse
-          };
+          if (rawResponse.errorMessage) {
+            return { 
+              trackingNumber: rawResponse.trackingNumber,
+              errorMessage: rawResponse.errorMessage,
+              trackingValues: []
+            };
+          } else {
+            return {
+              trackingNumber: trackingSelector.getTrackingNumber(rawResponse),
+              trackingValues: trackingSelector.getValues(rawResponse),
+              rawJson: rawResponse
+            };
+          }
         })
       }
     },
