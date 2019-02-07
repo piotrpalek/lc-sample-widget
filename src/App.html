@@ -15,6 +15,7 @@
 
 <script>
   import Livechat from '@livechat/agent-app-widget-sdk';
+  import { debounce } from 'debounce';
   import { upsRegex, capitalize } from './helpers';
   import renderWidgets from './widgetRenderer';
   import trackingSelector from './trackingSelector';
@@ -43,20 +44,17 @@
       this.handleButtonClickMessage = this.handleButtonClickMessage.bind(this);
       Livechat.on('customer_details_section_button_click', this.handleButtonClickMessage);
 
-      let stateCache = localStorage.getItem('stateCache') || '{}';
+      let stateCache = JSON.parse(localStorage.getItem('stateCache') || '{}');
 
       if (stateCache.__version !== currentCacheVersion) {
         stateCache = '{}';
       }
 
-      this.set({ rawResponseMap: JSON.parse(stateCache) });
+      this.set({ rawResponseMap: stateCache });
     },
 
     onupdate() {
-      const { normalizedTrackingData, rawResponseMap } = this.get();
-      renderWidgets(normalizedTrackingData);      
-      console.log('truncate: ', this.truncateResponseMap(rawResponseMap));
-      //localStorage.setItem('stateCache', JSON.stringify(rawResponseMap));
+      this.debouncedUpdate();
     },
 
     ondestroy() {
@@ -66,21 +64,28 @@
     },
 
     methods: {
-      truncateResponseMap() {
-        const { rawResponseMap } = this.get();
-        console.log('rawResponseMap: ', rawResponseMap);
-        Array.prototype.debug = function(prefix) { console.log(prefix, this); return this; }
-        const last20ChatsMap = Object.entries(rawResponseMap)
-          .debug('entries')
+      debouncedUpdate: debounce(function() {
+        const { normalizedTrackingData, rawResponseMap } = this.get();
+        
+        renderWidgets(normalizedTrackingData);
+        localStorage.setItem('stateCache', JSON.stringify({
+          ...this.truncateResponseMap(rawResponseMap),
+          __version: currentCacheVersion
+        }));
+      }, 150),
+
+      truncateResponseMap(rawResponseMap) {
+        return Object.entries(rawResponseMap)
+          .filter(([_, chatMap]) => chatMap && typeof chatMap === 'object')
+          // sort descending
           .sort((a, b) => b[1].__id - a[1].__id)
-          .debug('sort')
-          .slice(0, 1)
-          .debug('slice')
+          // get last X chats
+          .slice(0, 50)
+          // turn back into map
           .reduce((acc, [chatId, chatMap]) => {
             acc[chatId] = chatMap;
             return acc;
           }, {});
-        return last20ChatsMap;
       },
 
       handleCustomerProfile({ chat: { id: chatId } }) {
@@ -166,7 +171,7 @@
     computed: {
       normalizedTrackingData: ({ rawResponseMap, currentChat }) => {
         const rawResponseMapForChat = rawResponseMap[currentChat] || {};
-        return Object.keys(rawResponseMapForChat).map((trackingNumber) => {
+        return Object.keys(rawResponseMapForChat).filter(key=> !key.includes('__')).map((trackingNumber) => {
           const rawResponse = rawResponseMapForChat[trackingNumber];
           return { 
             ...trackingSelector.getValueMap(rawResponse), 
