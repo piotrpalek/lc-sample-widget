@@ -1,35 +1,42 @@
-const webpack = require('webpack');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const webpack = require("webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-const mode = process.env.NODE_ENV || 'development';
-const prod = mode === 'production';
+const mode = process.env.NODE_ENV || "development";
+const prod = mode === "production";
 
 module.exports = {
   entry: {
-    bundle: ['./src/main.js']
+    bundle: ["./src/main.js"]
   },
   resolve: {
-    extensions: ['.js', '.html']
+    extensions: [".js", ".html"]
   },
   output: {
-    path: __dirname + '/public',
-    filename: '[name].js',
-    chunkFilename: '[name].[id].js'
+    path: __dirname + "/public",
+    filename: "[name].js",
+    chunkFilename: "[name].[id].js"
   },
   module: {
     rules: [
       {
+        test: /\.m?js$/,
+        exclude: /node_modules/,
+        use: "babel-loader"
+      },
+      {
         test: /\.html$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'svelte-loader',
-          options: {
-            skipIntroByDefault: true,
-            nestedTransitions: true,
-            emitCss: true,
-            hotReload: true
+        use: [
+          {
+            loader: "svelte-loader",
+            options: {
+              skipIntroByDefault: true,
+              nestedTransitions: true,
+              emitCss: true,
+              hotReload: true
+            }
           }
-        }
+        ]
       },
       {
         test: /\.css$/,
@@ -38,8 +45,8 @@ module.exports = {
            * MiniCssExtractPlugin doesn't support HMR.
            * For developing, use 'style-loader' instead.
            * */
-          prod ? MiniCssExtractPlugin.loader : 'style-loader',
-          'css-loader'
+          prod ? MiniCssExtractPlugin.loader : "style-loader",
+          "css-loader"
         ]
       }
     ]
@@ -47,8 +54,11 @@ module.exports = {
   mode,
   plugins: [
     new MiniCssExtractPlugin({
-      filename: '[name].css'
+      filename: "[name].css"
     })
   ],
-  devtool: prod ? false: 'source-map'
+  devtool: prod ? false : "source-map",
+  devServer: {
+    disableHostCheck: true
+  }
 };
