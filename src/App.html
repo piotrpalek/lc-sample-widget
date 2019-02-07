@@ -47,7 +47,7 @@
       let stateCache = JSON.parse(localStorage.getItem('stateCache') || '{}');
 
       if (stateCache.__version !== currentCacheVersion) {
-        stateCache = '{}';
+        JSON.parse(stateCache = '{}');
       }
 
       this.set({ rawResponseMap: stateCache });

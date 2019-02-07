@@ -10,7 +10,7 @@
 {
   "customerDetailsSections": [
     {
-      "title": "Widget Integration",
+      "title": "UPS Delivery Status",
       "components": [{
         "type": "title",
         "data": {

@@ -38,7 +38,7 @@ function createRow({ trackingNumber, status }) {
 
 function modifyComponentSection(componentList = []) {
   Livechat.modifyCustomerDetailsSection({
-    title: "UPS Packages Status",
+    title: "UPS Delivery Status",
     components: componentList
   });
 }
