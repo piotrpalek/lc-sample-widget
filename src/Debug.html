@@ -2,6 +2,7 @@
 <div class="debug">
     <button on:click="simulateTracking()">random tracking</button>
     <button on:click="noTrackingInfo()">no tracking info</button>
+    <div><input bind:value=hostname type="text"><button on:click="fire('updateHost', hostname)">change host</button></div>
 </div>
 {/if}
 
@@ -13,6 +14,12 @@
 
 <script>
   export default {
+    data() {
+      return {
+        hostname: 'https://XXXXX.ngrok.io'
+      };
+    },
+
     methods: {
       simulateTracking(currentChat) {
         function getRandomInt(min, max) {

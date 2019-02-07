@@ -1,4 +1,8 @@
-<Debug chat={currentChat} isVisible={isDebug} on:loadTrackingNumber="handleCustomerMessage(event)" />
+<Debug 
+  chat={currentChat} 
+  isVisible={isDebug} 
+  on:updateHost="set({ host: event })"
+  on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
   <TabContent trackingNumbers={normalizedTrackingData} on:sendStatusClick="handleSendStatusLinkClick(event)" />
 </div>
@@ -30,7 +34,8 @@
         rawResponseMap: {},
         normalizedTrackingData: [],
         currentChat: '',
-        isDebug: true
+        isDebug: true,
+        host: 'https://localhost:54321'
       };
     },
 
@@ -125,7 +130,8 @@
           return;
         }
 
-        const trackingUrl = `https://localhost:54321/ups?tracking=${trackingNumber}`;
+        const { host } = this.get();
+        const trackingUrl = `${host}/ups?tracking=${trackingNumber}`;
         try {
           const response = await fetch(trackingUrl);
           const json = await response.json();
