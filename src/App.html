@@ -17,9 +17,9 @@
   import Livechat from '@livechat/agent-app-widget-sdk';
   import { upsRegex, capitalize } from './helpers';
   import renderWidgets from './widgetRenderer';
+  import trackingSelector from './trackingSelector';
   import TabContent from './TabContent.html';
   import Debug from './Debug';
-  import trackingSelector from './trackingSelector';
 
   export default {
     data() {
@@ -73,10 +73,11 @@
 
       handleButtonClickMessage({ buttonId }) {
         const [ buttonType, value ] = buttonId.split('-');
-        const { status } = this.getTrackingObject(value);
+        const { status, errorDescription } = this.getTrackingObject(value);
+        const statusText = errorDescription.value || status.value;
         
-        if (buttonType === 'sendstatus' && status && status.value) {
-          Livechat.putMessage(this.createMessageForAgent(value, status.value));
+        if (buttonType === 'sendstatus' && statusText) {
+          Livechat.putMessage(this.createMessageForAgent(value, statusText));
         }
       },
 

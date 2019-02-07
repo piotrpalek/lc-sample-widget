@@ -4,13 +4,13 @@
   {#each trackingNumbers as trackingObject}
     <li>
       <h1>{trackingObject.trackingNumber.value}</h1>
-      {#each validEntries(trackingObject) as trackingValue}
+      {#each valuesAsArray(trackingObject) as trackingValue}
         {#if trackingValue.value}
         <div class="label-value-box type-{trackingValue.type}">
           <div class="label">{trackingValue.label}:</div>
           <div class="value">{trackingValue.value}</div>
           {#if trackingValue.type == 'status'}
-            <a href="javascript:;" on:click="fire('sendStatusClick', trackingObject.trackingNumber)">
+            <a href="javascript:;" on:click="fire('sendStatusClick', trackingObject.trackingNumber.value)">
               Send status to customer
             </a>
           {/if}
@@ -105,7 +105,7 @@
 <script>
   export default {
     helpers: {
-      validEntries: function(trackingObject) {
+      valuesAsArray: function(trackingObject) {
         const excluded = ['error-code', 'error-description'];
         const allEntries = Object.keys(trackingObject).map(key => trackingObject[key]);
         return allEntries.filter(entry => entry.label && entry.value && !excluded.includes(entry.type));
