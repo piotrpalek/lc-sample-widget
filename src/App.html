@@ -21,6 +21,8 @@
   import TabContent from './TabContent.html';
   import Debug from './Debug';
 
+  const currentCacheVersion = 1;
+
   export default {
     data() {
       return {
@@ -41,15 +43,20 @@
       this.handleButtonClickMessage = this.handleButtonClickMessage.bind(this);
       Livechat.on('customer_details_section_button_click', this.handleButtonClickMessage);
 
-      const responseCache = localStorage.getItem('responseCache') || '{}';
-      this.set({ rawResponseMap: JSON.parse(responseCache) });
+      let stateCache = localStorage.getItem('stateCache') || '{}';
+
+      if (stateCache.__version !== currentCacheVersion) {
+        stateCache = '{}';
+      }
+
+      this.set({ rawResponseMap: JSON.parse(stateCache) });
     },
 
     onupdate() {
       const { normalizedTrackingData, rawResponseMap } = this.get();
-      console.log(normalizedTrackingData);
-      renderWidgets(normalizedTrackingData);
-      //localStorage.setItem('responseCache', JSON.stringify(rawResponseMap));
+      renderWidgets(normalizedTrackingData);      
+      console.log('truncate: ', this.truncateResponseMap(rawResponseMap));
+      //localStorage.setItem('stateCache', JSON.stringify(rawResponseMap));
     },
 
     ondestroy() {
@@ -59,6 +66,23 @@
     },
 
     methods: {
+      truncateResponseMap() {
+        const { rawResponseMap } = this.get();
+        console.log('rawResponseMap: ', rawResponseMap);
+        Array.prototype.debug = function(prefix) { console.log(prefix, this); return this; }
+        const last20ChatsMap = Object.entries(rawResponseMap)
+          .debug('entries')
+          .sort((a, b) => b[1].__id - a[1].__id)
+          .debug('sort')
+          .slice(0, 1)
+          .debug('slice')
+          .reduce((acc, [chatId, chatMap]) => {
+            acc[chatId] = chatMap;
+            return acc;
+          }, {});
+        return last20ChatsMap;
+      },
+
       handleCustomerProfile({ chat: { id: chatId } }) {
         this.set({ currentChat: chatId });
       },
@@ -115,10 +139,14 @@
 
           if (!rawResponseMap[chat]) {
             rawResponseMap[chat] = {};
+            const rawResponseList = Object.keys(rawResponseMap).map(key => rawResponseMap[key]);
+            const maxId = Math.max(...rawResponseList.map(item => item.__id || 1));
+            rawResponseMap[chat].__id = maxId + 1;
           }
 
           const rawResponseMapForChat = rawResponseMap[chat];
           rawResponseMapForChat[trackingNumber] = json;
+
           this.set({ rawResponseMap: { ...rawResponseMap } });
         } catch (e) {
           console.error(e);
