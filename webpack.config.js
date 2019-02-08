@@ -20,7 +20,7 @@ module.exports = {
     rules: [
       {
         test: /\.m?js$/,
-//        exclude: /node_modules/,
+        //        exclude: /node_modules/,
         use: "babel-loader"
       },
       {
@@ -51,6 +51,10 @@ module.exports = {
           prod ? MiniCssExtractPlugin.loader : "style-loader",
           "css-loader"
         ]
+      },
+      {
+        test: /\.(ttf|eot|svg)(\?v=.+)?$/,
+        use: "file-loader"
       }
     ]
   },
