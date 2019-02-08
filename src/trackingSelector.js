@@ -9,7 +9,7 @@ function toCamelCase(str) {
 
 export default {
   trackingNumberPath: 'TrackResponse/Shipment/Package/TrackingNumber',
-  statusPath: 'TrackResponse/Shipment/Package/Activity/Status/Description',
+  activityPath: 'TrackResponse/Shipment/Package/Activity',
   servicePath: 'TrackResponse/Shipment/Service/Description',
   pickupDatePath: 'TrackResponse/Shipment/PickupDate',
   weightPath: 'TrackResponse/Shipment/Package/PackageWeight',
@@ -25,7 +25,19 @@ export default {
   },
 
   getStatus(response) {
-    const status = this.get(this.statusPath, response);
+    const activity = this.get(this.activityPath, response);
+    const activityToStatusPath = 'Status/Description';
+    let activityObject;
+
+    if (Array.isArray(activity)) {
+      activityObject = activity.sort((a, b) => {
+        return b['Date'] - a['Date'] || b['Time'] - a['Time'];
+      })[0];
+    } else {
+      activityObject = activity;
+    }
+
+    const status = this.get(activityToStatusPath, activityObject);
     return status && status.toLowerCase();
   },
 
