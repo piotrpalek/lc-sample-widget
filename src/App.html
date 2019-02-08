@@ -1,7 +1,6 @@
 <Debug 
   chat={currentChat} 
-  isVisible={isDebug} 
-  on:updateHost="set({ host: event })"
+  isVisible={isDebug}
   on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
   <TabContent trackingNumbers={normalizedTrackingData} on:sendStatusClick="handleSendStatusLinkClick(event)" />
@@ -35,7 +34,7 @@
         normalizedTrackingData: [],
         currentChat: '',
         isDebug: true,
-        host: 'https://localhost:54321'
+        host: 'https://go-proxy-lc.herokuapp.com'
       };
     },
 
