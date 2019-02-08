@@ -28,9 +28,7 @@ module.exports = {
         exclude: /node_modules/,
         use: [
           {
-            test: /\.m?js$/,
-    //        exclude: /node_modules/,
-            use: "babel-loader"
+            loader: "babel-loader"
           },
           {
             loader: "svelte-loader",
