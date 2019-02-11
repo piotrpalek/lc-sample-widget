@@ -39,6 +39,14 @@
     },
 
     oncreate() {
+      let stateCache = JSON.parse(localStorage.getItem('stateCache') || '{}');
+
+      if (stateCache.__version !== currentCacheVersion) {
+        stateCache = {};
+      }
+
+      this.set({ rawResponseMap: stateCache });
+
       this.handleCustomerProfile = this.handleCustomerProfile.bind(this);
       Livechat.on("customer_profile", this.handleCustomerProfile);
 
@@ -47,17 +55,10 @@
 
       this.handleButtonClickMessage = this.handleButtonClickMessage.bind(this);
       Livechat.on('customer_details_section_button_click', this.handleButtonClickMessage);
-
-      let stateCache = JSON.parse(localStorage.getItem('stateCache') || '{}');
-
-      if (stateCache.__version !== currentCacheVersion) {
-        JSON.parse(stateCache = '{}');
-      }
-
-      this.set({ rawResponseMap: stateCache });
     },
 
     onupdate() {
+      console.log('current state: ', this.get());
       this.debouncedUpdate();
     },
 
@@ -157,6 +158,7 @@
           const rawResponseMapForChat = rawResponseMap[chat];
           rawResponseMapForChat[trackingNumber] = json;
 
+          console.log('setting responseMap: ', rawResponseMap);
           this.set({ rawResponseMap: { ...rawResponseMap } });
         } catch (e) {
           console.error(e);
@@ -176,13 +178,12 @@
     computed: {
       normalizedTrackingData: ({ rawResponseMap, currentChat }) => {
         const rawResponseMapForChat = rawResponseMap[currentChat] || {};
-        return Object.keys(rawResponseMapForChat).filter(key=> !key.includes('__')).map((trackingNumber) => {
+        const result = Object.keys(rawResponseMapForChat).filter(key=> !key.includes('__')).map((trackingNumber) => {
           const rawResponse = rawResponseMapForChat[trackingNumber];
-          return { 
-            ...trackingSelector.getValueMap(rawResponse), 
-            trackingNumber: { value: trackingNumber } 
-          };
+          return trackingSelector.getNormalizedResponse(trackingNumber, rawResponse);
         });
+        console.log('normalizedTrackingData: ', result);
+        return result;
       }
     },
 

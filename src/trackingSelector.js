@@ -8,24 +8,35 @@ function toCamelCase(str) {
 };
 
 export default {
-  trackingNumberPath: 'TrackResponse/Shipment/Package/TrackingNumber',
-  activityPath: 'TrackResponse/Shipment/Package/Activity',
+  packagePath: 'TrackResponse/Shipment/Package',
+  packageTrackingNumberPath: 'TrackingNumber',
+  packagActivityPath: 'Activity',
+  packageWeightPath: 'PackageWeight',
+
   servicePath: 'TrackResponse/Shipment/Service/Description',
   pickupDatePath: 'TrackResponse/Shipment/PickupDate',
-  weightPath: 'TrackResponse/Shipment/Package/PackageWeight',
   shipmentTypePath: 'TrackResponse/Shipment/ShipmentType/Code',
   packagingUnitsPath: 'TrackResponse/Shipment/NumberOfPackagingUnit/Type/Description',
   errorDescriptionPath: 'Fault/detail/Errors/ErrorDetail/PrimaryErrorCode/Description',
   errorCodePath: 'Fault/detail/Errors/ErrorDetail/PrimaryErrorCode/Code',
 
-  get: (p, o) => p.split('/').reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o),
+  get: (path, object) => {
+    const pathList = path.split('/');
+    return pathList.reduce((accumulator, partOfPath) => {
+      if (accumulator && accumulator[partOfPath]) {
+        return accumulator[partOfPath];
+      } else { 
+        return null;
+      }
+    }, object);
+  },
 
   getTrackingNumber(response) {
-    return this.get(this.trackingNumberPath, response);
+    return this.get(`${this.packagePath}/${this.packageTrackingNumberPath}`, response);
   },
 
   getStatus(response) {
-    const activity = this.get(this.activityPath, response);
+    const activity = this.get(`${this.packagePath}/${this.packagActivityPath}`, response);
     const activityToStatusPath = 'Status/Description';
     let activityObject;
 
@@ -58,7 +69,7 @@ export default {
   },
 
   getWeight(response) {
-    const weightObject = this.get(this.weightPath, response);
+    const weightObject = this.get(`${this.packagePath}/${this.packageWeightPath}`, response);
     if (!weightObject) {
       return '';
     }
@@ -93,6 +104,7 @@ export default {
 
   getValues(response) {
     return [
+      { type: 'tracking-number', value: this.getTrackingNumber(response) },
       { type: 'status', label: 'Status', value: this.getStatus(response) },
       { type: 'service', label: 'Service', value: this.getService(response) },
       { type: 'pickup-date', label: 'Pickup date', value: this.getPickupDate(response) },
@@ -109,5 +121,15 @@ export default {
       acc[toCamelCase(value.type)] = value;
       return acc;
     }, {});
+  },
+
+  getNormalizedResponse(trackingNumber, response) {
+    const keyValueMap = this.getValueMap(response);
+    
+    if (!keyValueMap.trackingNumber.value) {
+      keyValueMap.trackingNumber.value = trackingNumber;
+    }
+
+    return keyValueMap;
   }
 };

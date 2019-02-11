@@ -108,7 +108,7 @@
   export default {
     helpers: {
       valuesAsArray: function(trackingObject) {
-        const excluded = ['error-code', 'error-description'];
+        const excluded = ['tracking-number', 'error-code', 'error-description'];
         const allEntries = Object.keys(trackingObject).map(key => trackingObject[key]);
         return allEntries.filter(entry => entry.label && entry.value && !excluded.includes(entry.type));
       }
