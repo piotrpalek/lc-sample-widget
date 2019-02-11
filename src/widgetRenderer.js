@@ -7,14 +7,14 @@ function createRow({ trackingNumber, status }) {
       type: "label_value",
       data: {
         label: "Tracking #: ",
-        value: trackingNumber
+        value: trackingNumber || 'Error (tracking number)'
       }
     },
     {
       type: "label_value",
       data: {
         label: "Status: ",
-        value: capitalize(status)
+        value: status && capitalize(status) || 'Error (status)'
       }
     },
     {

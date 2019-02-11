@@ -1,6 +1,7 @@
 <Debug 
   chat={currentChat} 
   isVisible={isDebug}
+  on:clear="set({ rawResponseMap: {} })"
   on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
   <TabContent trackingNumbers={normalizedTrackingData} on:sendStatusClick="handleSendStatusLinkClick(event)" />
@@ -77,7 +78,7 @@
           ...this.truncateResponseMap(rawResponseMap),
           __version: currentCacheVersion
         }));
-      }, 150),
+      }, 200, true),
 
       truncateResponseMap(rawResponseMap) {
         return Object.entries(rawResponseMap)
@@ -183,7 +184,7 @@
           return trackingSelector.getNormalizedResponse(trackingNumber, rawResponse);
         });
         console.log('normalizedTrackingData: ', result);
-        return result;
+        return [].concat(...result);
       }
     },
 

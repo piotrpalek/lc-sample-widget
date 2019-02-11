@@ -10,12 +10,13 @@ function toCamelCase(str) {
 export default {
   packagePath: 'TrackResponse/Shipment/Package',
   packageTrackingNumberPath: 'TrackingNumber',
-  packagActivityPath: 'Activity',
+  packageActivityPath: 'Activity',
   packageWeightPath: 'PackageWeight',
 
   servicePath: 'TrackResponse/Shipment/Service/Description',
   pickupDatePath: 'TrackResponse/Shipment/PickupDate',
   shipmentTypePath: 'TrackResponse/Shipment/ShipmentType/Code',
+  shipmentStatusPath: 'TrackResponse/Shipment/CurrentStatus/Description',
   packagingUnitsPath: 'TrackResponse/Shipment/NumberOfPackagingUnit/Type/Description',
   errorDescriptionPath: 'Fault/detail/Errors/ErrorDetail/PrimaryErrorCode/Description',
   errorCodePath: 'Fault/detail/Errors/ErrorDetail/PrimaryErrorCode/Code',
@@ -31,12 +32,21 @@ export default {
     }, object);
   },
 
-  getTrackingNumber(response) {
-    return this.get(`${this.packagePath}/${this.packageTrackingNumberPath}`, response);
+  getPackages(response) {
+    const rawPackageData = this.get(this.packagePath, response);
+    if (Array.isArray(rawPackageData)) {
+      return rawPackageData;
+    } else {
+      return [rawPackageData];
+    }
   },
 
-  getStatus(response) {
-    const activity = this.get(`${this.packagePath}/${this.packagActivityPath}`, response);
+  getPackageTrackingNumber(rawPackageData) {
+    return this.get(this.packageTrackingNumberPath, rawPackageData);
+  },
+
+  getPackageStatus(rawPackageData) {
+    const activity = this.get(this.packageActivityPath, rawPackageData);
     const activityToStatusPath = 'Status/Description';
     let activityObject;
 
@@ -50,6 +60,17 @@ export default {
 
     const status = this.get(activityToStatusPath, activityObject);
     return status && status.toLowerCase();
+  },
+
+  getPackageWeight(rawPackageData) {
+    const weightObject = this.get(this.packageWeightPath, rawPackageData);
+    if (!weightObject) {
+      return '';
+    }
+
+    const unit = weightObject['UnitOfMeasurement']['Code'];
+    const weight = weightObject['Weight'];
+    return `${weight} ${unit}`.toLowerCase();
   },
 
   getService(response) {
@@ -68,17 +89,6 @@ export default {
     return `${year}/${month}/${day}`;
   },
 
-  getWeight(response) {
-    const weightObject = this.get(`${this.packagePath}/${this.packageWeightPath}`, response);
-    if (!weightObject) {
-      return '';
-    }
-
-    const unit = weightObject['UnitOfMeasurement']['Code'];
-    const weight = weightObject['Weight'];
-    return `${weight} ${unit}`.toLowerCase();
-  },
-
   getShipmentType(response) {
     const shipmentTypes = {
       '01': 'Package',
@@ -88,6 +98,10 @@ export default {
 
     const shipmentCode = this.get(this.shipmentTypePath, response);
     return shipmentTypes[shipmentCode];
+  },
+
+  getShipmentStatus(response) {
+    return this.get(this.shipmentStatusPath, response);
   },
 
   getPackagingUnits(response) {
@@ -102,13 +116,10 @@ export default {
     return this.get(this.errorCodePath, response);
   },
 
-  getValues(response) {
+  getCommonValues(response) {
     return [
-      { type: 'tracking-number', value: this.getTrackingNumber(response) },
-      { type: 'status', label: 'Status', value: this.getStatus(response) },
       { type: 'service', label: 'Service', value: this.getService(response) },
       { type: 'pickup-date', label: 'Pickup date', value: this.getPickupDate(response) },
-      { type: 'weight', label: 'Weight', value: this.getWeight(response) },
       { type: 'shipment-type', label: 'Shipment type', value: this.getShipmentType(response) },
       { type: 'packaging-units', label: 'Number of packaging units', value: this.getPackagingUnits(response) },
       { type: 'error-description', label: 'Error Description', value: this.getErrorDescription(response) },
@@ -116,20 +127,42 @@ export default {
     ];
   },
 
-  getValueMap(response) {
-    return this.getValues(response).reduce((acc, value) => {
+  getPackageValues(rawPackageData) {
+    return [
+      { type: 'tracking-number', value: this.getPackageTrackingNumber(rawPackageData) },
+      { type: 'status', label: 'Status', value: this.getPackageStatus(rawPackageData) },
+      { type: 'weight', label: 'Weight', value: this.getPackageWeight(rawPackageData) },
+    ];
+  },
+
+  getValueMap(values) {
+    return values.reduce((acc, value) => {
       acc[toCamelCase(value.type)] = value;
       return acc;
     }, {});
   },
 
   getNormalizedResponse(trackingNumber, response) {
-    const keyValueMap = this.getValueMap(response);
-    
-    if (!keyValueMap.trackingNumber.value) {
-      keyValueMap.trackingNumber.value = trackingNumber;
-    }
+    const packages = this.getPackages(response);
+    return packages.map((rawPackageData) => {
+      const commonData = this.getValueMap(this.getCommonValues(response));
+      const normalizedPackageData = this.getValueMap(this.getPackageValues(rawPackageData));
+      
+      const keyValueMap = {
+        ...commonData,
+        ...normalizedPackageData
+      };
 
-    return keyValueMap;
+      // error responses don't have tracking numbers and they're important
+      if (!keyValueMap.trackingNumber.value) {
+        keyValueMap.trackingNumber.value = trackingNumber;
+      }
+
+      if (!keyValueMap.status.value) {
+        keyValueMap.status = { type: 'status', label: 'Status', value: this.getShipmentStatus(response) };
+      }
+
+      return keyValueMap;
+    });
   }
 };
