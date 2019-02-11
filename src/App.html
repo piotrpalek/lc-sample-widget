@@ -59,7 +59,6 @@
     },
 
     onupdate() {
-      console.log('current state: ', this.get());
       this.debouncedUpdate();
     },
 
@@ -159,7 +158,6 @@
           const rawResponseMapForChat = rawResponseMap[chat];
           rawResponseMapForChat[trackingNumber] = json;
 
-          console.log('setting responseMap: ', rawResponseMap);
           this.set({ rawResponseMap: { ...rawResponseMap } });
         } catch (e) {
           console.error(e);
@@ -183,7 +181,6 @@
           const rawResponse = rawResponseMapForChat[trackingNumber];
           return trackingSelector.getNormalizedResponse(trackingNumber, rawResponse);
         });
-        console.log('normalizedTrackingData: ', result);
         return [].concat(...result);
       }
     },
