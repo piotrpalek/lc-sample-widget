@@ -119,8 +119,9 @@
         }
       },
 
-      async handleCustomerMessage({ chat, message, message_source: messageSource }, attempt = 0) {
-        if (messageSource !== 'visitor') {
+      async handleCustomerMessage(messageData) {
+        const { message, message_source } = messageData;
+        if (message_source !== 'visitor') {
           return;
         }
 
@@ -129,13 +130,21 @@
           return;
         }
 
-        const [trackingNumber] = regexResult;
-        if (!trackingNumber) {
+        const results = regexResult;
+        if (!results.length) {
           return;
         }
 
+        for (const trackingNumber of results) {
+          await this.fetchTrackingData(trackingNumber, messageData);
+        }
+      },
+
+      async fetchTrackingData(trackingNumber, messageData, attempt = 0) {
         const { host } = this.get();
         const trackingUrl = `${host}/ups?tracking=${trackingNumber}`;
+        const { chat } = messageData;
+
         try {
           const response = await fetch(trackingUrl);
           const json = await response.json();
@@ -145,7 +154,7 @@
           if (errorCode === '10001' && attempt < 5) {
             setTimeout(() => {
               console.log(`Attempt #[${attempt}] - Retrying to fetch from UPS API.`)
-              this.handleCustomerMessage({ message, chat, message_source: messageSource }, attempt + 1);
+              this.handleCustomerMessage(messageData, attempt + 1);
             }, 500);
             return;
           }
