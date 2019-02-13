@@ -4,7 +4,10 @@
   on:clear="set({ rawResponseMap: {} })"
   on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
-  <TabContent trackingNumbers={normalizedTrackingData} on:sendStatusClick="handleSendStatusLinkClick(event)" />
+  <TabContent
+    source={currentSource}
+    trackingNumbers={normalizedTrackingData} 
+    on:sendStatusClick="handleSendStatusLinkClick(event)" />
 </div>
 
 <style>
@@ -70,9 +73,9 @@
 
     methods: {
       debouncedUpdate: debounce(function() {
-        const { normalizedTrackingData, rawResponseMap } = this.get();
+        const { normalizedTrackingData, rawResponseMap, currentSource } = this.get();
         
-        renderWidgets(normalizedTrackingData);
+        renderWidgets(normalizedTrackingData, currentSource);
         localStorage.setItem('stateCache', JSON.stringify({
           ...this.truncateResponseMap(rawResponseMap),
           __version: currentCacheVersion
@@ -93,8 +96,8 @@
           }, {});
       },
 
-      handleCustomerProfile({ chat: { id: chatId } }) {
-        this.set({ currentChat: chatId });
+      handleCustomerProfile({ chat: { id: chatId }, source }) {
+        this.set({ currentChat: chatId, currentSource: source });
       },
 
       handleSendStatusLinkClick(trackingNumber) {

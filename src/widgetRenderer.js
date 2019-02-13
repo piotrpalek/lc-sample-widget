@@ -1,30 +1,34 @@
 import Livechat from "@livechat/agent-app-widget-sdk";
 import { capitalize } from './helpers';
 
-function createRow({ trackingNumber, status }) {
-  return [
-    {
-      type: "label_value",
-      data: {
-        label: "Tracking #: ",
-        value: trackingNumber || 'Error (tracking number)'
+function createRow({ trackingNumber, status, source }) {
+  const sendStatusButton = {
+    type: "button",
+    data: {
+      label: "Send status",
+      id: `sendstatus-${trackingNumber}`,
+      openApp: false
+    }
+  };
+
+  return [].concat(
+    [
+      {
+        type: "label_value",
+        data: {
+          label: "Tracking #: ",
+          value: trackingNumber || 'Error (tracking number)'
+        }
+      },
+      {
+        type: "label_value",
+        data: {
+          label: "Status: ",
+          value: status && capitalize(status) || 'Error (status)'
+        }
       }
-    },
-    {
-      type: "label_value",
-      data: {
-        label: "Status: ",
-        value: status && capitalize(status) || 'Error (status)'
-      }
-    },
-    {
-      type: "button",
-      data: {
-        label: "Send status",
-        id: `sendstatus-${trackingNumber}`,
-        openApp: false
-      }
-    },
+    ],
+    source === 'chats' ? sendStatusButton : [],
     {
       type: "button",
       data: {
@@ -33,7 +37,7 @@ function createRow({ trackingNumber, status }) {
         openApp: true
       }
     }
-  ];
+  );
 }
 
 function modifyComponentSection(componentList = []) {
@@ -43,7 +47,7 @@ function modifyComponentSection(componentList = []) {
   });
 }
 
-export default function(normalizedTrackingData) {
+export default function(normalizedTrackingData, source) {
   if (normalizedTrackingData.length <= 0) {
     modifyComponentSection([
       {
@@ -60,7 +64,7 @@ export default function(normalizedTrackingData) {
         statusDescription = errorDescription.value;
       }
 
-      const row = createRow({ trackingNumber: trackingNumber.value, status: statusDescription });
+      const row = createRow({ trackingNumber: trackingNumber.value, status: statusDescription, source });
 
       if (index <= 0) {
         return row;
