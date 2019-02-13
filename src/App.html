@@ -47,6 +47,7 @@
 
       if (stateCache.__version !== currentCacheVersion) {
         stateCache = {};
+        localStorage.clear();
       }
 
       this.set({ rawResponseMap: stateCache });

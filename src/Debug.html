@@ -21,22 +21,25 @@
     },
 
     methods: {
-      simulateTracking(currentChat) {
+      simulateTracking() {
         function getRandomInt(min, max) {
           return Math.floor(Math.random() * (max - min + 1) + min);
         }
   
         const debugTrackingNumbers = ['1Z648616E192760718', '1ZWX0692YP40636269', '1Z12345E1305277940', '1Z12345E1505270452', '1Z12345E0205271688'];
         const { handleCustomerMessage } = this.get();
+        const random1 = debugTrackingNumbers[getRandomInt(2, debugTrackingNumbers.length - 1)];
+        const random2 = debugTrackingNumbers[getRandomInt(0, 2)];
+        const message = `foo bar ${random1} bar bar foo ${random2}`;
 
         this.fire('loadTrackingNumber', { 
-          message: debugTrackingNumbers[getRandomInt(0, debugTrackingNumbers.length - 1)],
+          message,
           message_source: 'visitor',
           chat: this.get().chat
         });
       },
 
-      noTrackingInfo(currentChat) {
+      noTrackingInfo() {
         this.fire('loadTrackingNumber', { 
           message: '1Z12345E1505270452',
           message_source: 'visitor',
