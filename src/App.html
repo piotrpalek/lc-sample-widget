@@ -1,7 +1,7 @@
 <Debug 
   chat={currentChat} 
   isVisible={isDebug}
-  on:clear="set({ rawResponseMap: {}, numbersBeingFetched: [] })"
+  on:clear="set({ rawResponseMap: {} })"
   on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
   <TabContent
@@ -17,6 +17,9 @@
 
   #mainApp {
     padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
 </style>
 
@@ -36,7 +39,6 @@
       return {
         rawResponseMap: {},
         normalizedTrackingData: [],
-        numbersBeingFetched: [],
         currentChat: '',
         isDebug: true,
         host: 'https://go-proxy-lc.herokuapp.com'
@@ -99,6 +101,7 @@
       },
 
       handleCustomerProfile({ chat: { id: chatId }, source }) {
+        console.log(...arguments);
         this.set({ currentChat: chatId, currentSource: source });
       },
 
@@ -137,11 +140,7 @@
         }
 
         for (const trackingNumber of results) {
-          const { numbersBeingFetched } = this.get();
-          this.set({ numbersBeingFetched: numbersBeingFetched.concat([ trackingNumber ]) })
           await this.fetchTrackingData(trackingNumber, messageData);
-          const withoutTrackingNumber = numbersBeingFetched.concat().filter(n => n !== trackingNumber);
-          this.set({ numbersBeingFetched: withoutTrackingNumber });
         }
       },
 
@@ -194,21 +193,13 @@
     },
 
     computed: {
-      normalizedTrackingData: ({ rawResponseMap, currentChat, numbersBeingFetched }) => {
+      normalizedTrackingData: ({ rawResponseMap, currentChat }) => {
         const rawResponseMapForChat = rawResponseMap[currentChat] || {};
         const result = Object.keys(rawResponseMapForChat).filter(key=> !key.includes('__')).map((trackingNumber) => {
           const rawResponse = rawResponseMapForChat[trackingNumber];
           return trackingSelector.getNormalizedResponse(trackingNumber, rawResponse);
         });
-
-        const asLoadingObjects = numbersBeingFetched.map(trackingNumber => ({
-          trackingNumber: { value: trackingNumber },
-          isLoading: { value: true },
-          status: { value: null },
-          errorDescription: { value: null },
-          errorCode: { value: null }
-        }));
-        return asLoadingObjects.concat(...result);
+        return [].concat(...result);
       }
     },
 
