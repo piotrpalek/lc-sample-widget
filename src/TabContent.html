@@ -2,30 +2,40 @@
 <hr>
 <ul>
   {#each trackingNumbers as trackingObject}
-    <li>
-      <h1>{trackingObject.trackingNumber.value}</h1>
-      {#each valuesAsArray(trackingObject) as trackingValue}
-        {#if trackingValue.value}
-        <div class="label-value-box type-{trackingValue.type}">
-          <div class="label">{trackingValue.label}:</div>
-          <div class="value">{trackingValue.value}</div>
-          {#if source == 'chats' && trackingValue.type == 'status'}
-            <a href="javascript:;" on:click="fire('sendStatusClick', trackingObject.trackingNumber.value)">
-              Send status to customer
-            </a>
+    {#if trackingObject.isLoading}
+      <li>
+        <h1>{trackingObject.trackingNumber.value}</h1>
+        <h2>IS LOADING...</h2>
+      </li>
+    {:else}
+      <li>
+        <h1>{trackingObject.trackingNumber.value}</h1>
+        {#each valuesAsArray(trackingObject) as trackingValue}
+          {#if trackingValue.value}
+          <div class="label-value-box type-{trackingValue.type}">
+            <div class="label">{trackingValue.label}:</div>
+            <div class="value">{trackingValue.value}</div>
+            {#if source == 'chats' && trackingValue.type == 'status'}
+              <a href="javascript:;" on:click="fire('sendStatusClick', trackingObject.trackingNumber.value)">
+                Send status to customer
+              </a>
+            {/if}
+          </div>
           {/if}
-        </div>
-        {/if}
-      {/each}
+        {/each}
 
-      {#if trackingObject.errorDescription.value}
-        <div class="error-message">
-          <p>{trackingObject.errorDescription.value}</p>
-        </div>
-      {/if}
-    </li>
+        {#if trackingObject.errorDescription.value}
+          <div class="error-message">
+            <p>{trackingObject.errorDescription.value}</p>
+          </div>
+        {/if}
+      </li>
+    {/if}
   {/each}
 </ul>
+{#if trackingNumbers.length === 0}
+  <h1>No packages found!</h1>
+{/if}
 
 <style>
   h1 {

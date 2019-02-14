@@ -1,7 +1,7 @@
 <Debug 
   chat={currentChat} 
   isVisible={isDebug}
-  on:clear="set({ rawResponseMap: {} })"
+  on:clear="set({ rawResponseMap: {}, numbersBeingFetched: [] })"
   on:loadTrackingNumber="handleCustomerMessage(event)" />
 <div id="mainApp">
   <TabContent
@@ -36,6 +36,7 @@
       return {
         rawResponseMap: {},
         normalizedTrackingData: [],
+        numbersBeingFetched: [],
         currentChat: '',
         isDebug: true,
         host: 'https://go-proxy-lc.herokuapp.com'
@@ -136,14 +137,17 @@
         }
 
         for (const trackingNumber of results) {
+          const { numbersBeingFetched } = this.get();
+          this.set({ numbersBeingFetched: numbersBeingFetched.concat([ trackingNumber ]) })
           await this.fetchTrackingData(trackingNumber, messageData);
+          const withoutTrackingNumber = numbersBeingFetched.concat().filter(n => n !== trackingNumber);
+          this.set({ numbersBeingFetched: withoutTrackingNumber });
         }
       },
 
       async fetchTrackingData(trackingNumber, messageData, attempt = 0) {
         const { host } = this.get();
         const trackingUrl = `${host}/ups?tracking=${trackingNumber}`;
-        const { chat } = messageData;
 
         try {
           const response = await fetch(trackingUrl);
@@ -152,29 +156,31 @@
 
           // API sometimes doesn't work, workaround:
           if (errorCode === '10001' && attempt < 5) {
-            setTimeout(() => {
-              console.log(`Attempt #[${attempt}] - Retrying to fetch from UPS API.`)
-              this.handleCustomerMessage(messageData, attempt + 1);
-            }, 500);
-            return;
+            console.log(`Attempt #[${attempt}] - Retrying to fetch from UPS API.`)
+            return this.fetchTrackingData(trackingNumber, messageData, attempt + 1);
           }
 
-          const { rawResponseMap } = this.get();
-
-          if (!rawResponseMap[chat]) {
-            rawResponseMap[chat] = {};
-            const rawResponseList = Object.keys(rawResponseMap).map(key => rawResponseMap[key]);
-            const maxId = Math.max(...rawResponseList.map(item => item.__id || 1));
-            rawResponseMap[chat].__id = maxId + 1;
-          }
-
-          const rawResponseMapForChat = rawResponseMap[chat];
-          rawResponseMapForChat[trackingNumber] = json;
-
-          this.set({ rawResponseMap: { ...rawResponseMap } });
+          const { chat } = messageData;
+          this.set({ rawResponseMap: this.updateResponseForChat(chat, trackingNumber, json) });
         } catch (e) {
           console.error(e);
         }
+      },
+
+      updateResponseForChat(chat, trackingNumber, trackingObject) {
+        const { rawResponseMap } = this.get();
+        const newResponseMap = { ...rawResponseMap };
+
+        if (!newResponseMap[chat]) {
+          newResponseMap[chat] = {};
+          const rawResponseList = Object.keys(newResponseMap).map(key => newResponseMap[key]);
+          const maxId = Math.max(...rawResponseList.map(item => item.__id || 1));
+          newResponseMap[chat].__id = maxId + 1;
+        }
+
+        const rawResponseMapForChat = newResponseMap[chat];
+        rawResponseMapForChat[trackingNumber] = trackingObject;
+        return newResponseMap;
       },
 
       createMessageForAgent(trackingNumber, status) {
@@ -188,13 +194,21 @@
     },
 
     computed: {
-      normalizedTrackingData: ({ rawResponseMap, currentChat }) => {
+      normalizedTrackingData: ({ rawResponseMap, currentChat, numbersBeingFetched }) => {
         const rawResponseMapForChat = rawResponseMap[currentChat] || {};
         const result = Object.keys(rawResponseMapForChat).filter(key=> !key.includes('__')).map((trackingNumber) => {
           const rawResponse = rawResponseMapForChat[trackingNumber];
           return trackingSelector.getNormalizedResponse(trackingNumber, rawResponse);
         });
-        return [].concat(...result);
+
+        const asLoadingObjects = numbersBeingFetched.map(trackingNumber => ({
+          trackingNumber: { value: trackingNumber },
+          isLoading: { value: true },
+          status: { value: null },
+          errorDescription: { value: null },
+          errorCode: { value: null }
+        }));
+        return asLoadingObjects.concat(...result);
       }
     },
 
