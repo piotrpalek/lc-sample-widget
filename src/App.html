@@ -46,14 +46,7 @@
     },
 
     oncreate() {
-      let stateCache = JSON.parse(localStorage.getItem('stateCache') || '{}');
-
-      if (stateCache.__version !== currentCacheVersion) {
-        stateCache = {};
-        localStorage.clear();
-      }
-
-      this.set({ rawResponseMap: stateCache });
+      this.syncStorageChange();
 
       this.handleCustomerProfile = this.handleCustomerProfile.bind(this);
       Livechat.on("customer_profile", this.handleCustomerProfile);
@@ -63,6 +56,11 @@
 
       this.handleButtonClickMessage = this.handleButtonClickMessage.bind(this);
       Livechat.on('customer_details_section_button_click', this.handleButtonClickMessage);
+
+      // app can be displayed in different sections, each section has its own instance of this app
+      // so we need to sync the state between them
+      this.syncStorageChange = this.syncStorageChange.bind(this);
+      window.addEventListener('storage', this.syncStorageChange);
     },
 
     onupdate() {
@@ -73,6 +71,7 @@
       Livechat.off('customer_profile', this.handleCustomerProfile);
       Livechat.off('message', this.handleCustomerMessage);
       Livechat.off('customer_details_section_button_click', this.handleButtonClickMessage);
+      window.removeEventListener('storage', this.syncStorageChange);
     },
 
     methods: {
@@ -85,6 +84,17 @@
           __version: currentCacheVersion
         }));
       }, 200, { leading: true, trailing: true }),
+
+      syncStorageChange() {
+        let stateCache = JSON.parse(localStorage.getItem('stateCache') || '{}');
+
+        if (stateCache.__version !== currentCacheVersion) {
+          stateCache = {};
+          localStorage.clear();
+        }
+
+        this.set({ rawResponseMap: stateCache });
+      },
 
       truncateResponseMap(rawResponseMap) {
         return Object.entries(rawResponseMap)
