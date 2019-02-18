@@ -53,7 +53,7 @@ export default function(normalizedTrackingData, source) {
       {
         type: "title",
         data: {
-          title: "No packages found"
+          title: "No tracking numbers detected yet"
         }
       }
     ]);

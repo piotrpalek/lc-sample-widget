@@ -3,6 +3,9 @@
     <button on:click="simulateTracking()">random tracking</button>
     <button on:click="noTrackingInfo()">no tracking info</button>
     <button on:click="fire('clear')">clear</button>
+    <button on:click="modifySection()">modify</button>
+    <br>
+    <input type="text" bind:value=inputValue>
 </div>
 {/if}
 
@@ -13,14 +16,28 @@
 </style>
 
 <script>
+  import Livechat from '@livechat/agent-app-widget-sdk';
+  
   export default {
     data() {
       return {
-        hostname: 'https://XXXXX.ngrok.io'
+        hostname: 'https://XXXXX.ngrok.io',
+        inputValue: ''
       };
     },
 
     methods: {
+      modifySection() {
+        const { inputValue } = this.get();
+        let parsed = JSON.parse(inputValue);
+        parsed = Array.isArray(parsed) ? parsed : [parsed];
+        console.log(parsed);
+        Livechat.modifyCustomerDetailsSection({
+          title: "UPS Delivery Status",
+          components: parsed
+        });
+      },
+
       simulateTracking() {
         function getRandomInt(min, max) {
           return Math.floor(Math.random() * (max - min + 1) + min);
