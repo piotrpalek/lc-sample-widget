@@ -164,7 +164,7 @@
 
           // API sometimes doesn't work, workaround:
           if (errorCode === '10001' && attempt < 5) {
-            console.log(`Attempt #[${attempt}] - Retrying to fetch from UPS API.`)
+            console.info(`Attempt #[${attempt}] - Retrying to fetch from UPS API.`)
             return this.fetchTrackingData(trackingNumber, messageData, attempt + 1);
           }
 
