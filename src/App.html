@@ -187,7 +187,8 @@
         }
 
         const rawResponseMapForChat = newResponseMap[chat];
-        rawResponseMapForChat[trackingNumber] = trackingObject;
+        const keyLength = Object.keys(rawResponseMapForChat).length;
+        rawResponseMapForChat[trackingNumber] = { __id: keyLength + 1, ...trackingObject };
         return newResponseMap;
       },
 
@@ -203,11 +204,17 @@
 
     computed: {
       normalizedTrackingData: ({ rawResponseMap, currentChat }) => {
+        if (!currentChat) {
+          return [];
+        }
+        
         const rawResponseMapForChat = rawResponseMap[currentChat] || {};
-        const result = Object.keys(rawResponseMapForChat).filter(key=> !key.includes('__')).map((trackingNumber) => {
-          const rawResponse = rawResponseMapForChat[trackingNumber];
-          return trackingSelector.getNormalizedResponse(trackingNumber, rawResponse);
-        });
+        const result = Object.keys(rawResponseMapForChat)
+          .filter(key=> !key.includes('__'))
+          .map(trackingNumber => [trackingNumber, rawResponseMapForChat[trackingNumber]])
+          // sort descending
+          .sort((a, b) => b[1].__id - a[1].__id)
+          .map(([trackingNumber, rawResponse]) => trackingSelector.getNormalizedResponse(trackingNumber, rawResponse))
         return [].concat(...result);
       }
     },
