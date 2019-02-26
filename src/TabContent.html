@@ -28,8 +28,8 @@
 </ul>
 {#if trackingNumbers.length === 0}
   <div class="empty">
-    <img src="{magnifyingGlassUrl}" alt="magnifying glass">
-    <h1>No tracking<br>numbers detected yet</h1>
+    <img src="{periscopeUrl}" alt="periscope">
+    <h1>No tracking<br>numbers detected</h1>
     <p>Once any tracking number will show up in the chat, we will display information about delivery status here.</p>
   </div>
 {/if}
@@ -137,7 +137,7 @@
 </style>
 
 <script>
-  import MagnifyingGlass from './img/magnifying-glass.svg';
+  import Periscope from './img/periscope.svg';
 
   export default {
     helpers: {
@@ -151,7 +151,7 @@
     data() {
       return {
         trackingNumbers: [],
-        magnifyingGlassUrl: MagnifyingGlass
+        periscopeUrl: Periscope
       };
     }
   }
