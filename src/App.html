@@ -1,8 +1,9 @@
 <Debug 
-  chat={currentChat} 
-  isVisible={isDebug}
+  chatId={currentChatId} 
+  isVisible={false}
   on:clear="set({ rawResponseMap: {} })"
   on:loadTrackingNumber="handleCustomerMessage(event)" />
+
 <div id="mainApp">
   <TabContent
     source={currentSource}
@@ -33,20 +34,32 @@
   import Debug from './Debug';
 
   const currentCacheVersion = 1;
+  const host = 'https://go-proxy-lc.herokuapp.com';
 
   export default {
     data() {
       return {
+        /**
+          rawResponseMap has this format:
+          {
+            CHAT_ID: {
+              __id: number // ascending, so we know which chat is recent (for cache),
+              TRACKING_NUMBER: { // tracking number found in message
+                __id: number // same as above, but for the purpose of sorting tracking numbers,
+                ...properties // all properties of the raw API response
+              }
+            }
+          }
+        **/
         rawResponseMap: {},
         normalizedTrackingData: [],
-        currentChat: '',
-        isDebug: false,
-        host: 'https://go-proxy-lc.herokuapp.com'
+        currentChatId: '',
+        currentSource: ''
       };
     },
 
     oncreate() {
-      this.syncStorageChange();
+      this.syncStateCache();
 
       this.handleCustomerProfile = this.handleCustomerProfile.bind(this);
       Livechat.on("customer_profile", this.handleCustomerProfile);
@@ -59,8 +72,8 @@
 
       // app can be displayed in different sections, each section has its own instance of this app
       // so we need to sync the state between them
-      this.syncStorageChange = this.syncStorageChange.bind(this);
-      window.addEventListener('storage', this.syncStorageChange);
+      this.syncStateCache = this.syncStateCache.bind(this);
+      window.addEventListener('storage', this.syncStateCache);
     },
 
     onupdate() {
@@ -71,24 +84,29 @@
       Livechat.off('customer_profile', this.handleCustomerProfile);
       Livechat.off('message', this.handleCustomerMessage);
       Livechat.off('customer_details_section_button_click', this.handleButtonClickMessage);
-      window.removeEventListener('storage', this.syncStorageChange);
+      window.removeEventListener('storage', this.syncStateCache);
     },
 
     methods: {
       debouncedUpdate: debounce(function() {
         const { normalizedTrackingData, rawResponseMap, currentSource } = this.get();
         
+        // render widgets in Customer Details
         renderWidgets(normalizedTrackingData, currentSource);
+
+        // save stateCache on every change
         localStorage.setItem('stateCache', JSON.stringify({
+          // limit how many items we put in the cache
           ...this.truncateResponseMap(rawResponseMap),
           __version: currentCacheVersion
         }));
       }, 200, { leading: true, trailing: true }),
 
-      syncStorageChange() {
+      syncStateCache() {
         let stateCache = JSON.parse(localStorage.getItem('stateCache') || '{}');
 
         if (stateCache.__version !== currentCacheVersion) {
+          // bust cache
           stateCache = {};
           localStorage.clear();
         }
@@ -111,7 +129,7 @@
       },
 
       handleCustomerProfile({ chat: { id: chatId }, source }) {
-        this.set({ currentChat: chatId, currentSource: source });
+        this.set({ currentChatId: chatId, currentSource: source });
       },
 
       handleSendStatusLinkClick(trackingNumber) {
@@ -138,6 +156,7 @@
           return;
         }
 
+        // search for tracking numbers in the user's message
         const regexResult = message.match(upsRegex);
         if (!regexResult) {
           return;
@@ -203,17 +222,20 @@
     },
 
     computed: {
-      normalizedTrackingData: ({ rawResponseMap, currentChat }) => {
-        if (!currentChat) {
+      normalizedTrackingData: ({ rawResponseMap, currentChatId }) => {
+        if (!currentChatId) {
           return [];
         }
         
-        const rawResponseMapForChat = rawResponseMap[currentChat] || {};
+        const rawResponseMapForChat = rawResponseMap[currentChatId] || {};
         const result = Object.keys(rawResponseMapForChat)
+          // filter out so that normalize function doesn't take this key into account
           .filter(key=> !key.includes('__'))
+          // map into [trackingNumber, rawResponse] array so we can sort it
           .map(trackingNumber => [trackingNumber, rawResponseMapForChat[trackingNumber]])
           // sort descending
           .sort((a, b) => b[1].__id - a[1].__id)
+          // map into normalized response
           .map(([trackingNumber, rawResponse]) => trackingSelector.getNormalizedResponse(trackingNumber, rawResponse))
         return [].concat(...result);
       }

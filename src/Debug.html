@@ -21,7 +21,6 @@
   export default {
     data() {
       return {
-        hostname: 'https://XXXXX.ngrok.io',
         inputValue: ''
       };
     },
@@ -52,7 +51,7 @@
         this.fire('loadTrackingNumber', { 
           message,
           message_source: 'visitor',
-          chat: this.get().chat
+          chat: this.get().chatId
         });
       },
 
@@ -60,7 +59,7 @@
         this.fire('loadTrackingNumber', { 
           message: '1Z12345E1505270452',
           message_source: 'visitor',
-          chat: this.get().chat
+          chat: this.get().chatId
         });
       }
     }
