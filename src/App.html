@@ -173,7 +173,6 @@
       },
 
       async fetchTrackingData(trackingNumber, messageData, attempt = 0) {
-        const { host } = this.get();
         const trackingUrl = `${host}/ups?tracking=${trackingNumber}`;
 
         try {

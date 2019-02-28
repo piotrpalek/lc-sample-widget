@@ -12,9 +12,10 @@
     {
       "title": "UPS Delivery Status",
       "components": [{
-        "type": "title",
-        "data": {
-          "title": "No packages found"
+        type: "label_value",
+        data: {
+          label: "No tracking numbers detected",
+          value: ''
         }
       }]
     }

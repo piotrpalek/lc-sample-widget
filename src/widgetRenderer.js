@@ -51,9 +51,10 @@ export default function(normalizedTrackingData, source) {
   if (normalizedTrackingData.length <= 0) {
     modifyComponentSection([
       {
-        type: "title",
+        type: "label_value",
         data: {
-          title: "No tracking numbers detected yet"
+          label: "No tracking numbers detected",
+          value: ''
         }
       }
     ]);
