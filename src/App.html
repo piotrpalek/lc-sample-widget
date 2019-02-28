@@ -1,6 +1,6 @@
 <Debug 
   chatId={currentChatId} 
-  isVisible={false}
+  isVisible={isDev}
   on:clear="set({ rawResponseMap: {} })"
   on:loadTrackingNumber="handleCustomerMessage(event)" />
 
@@ -34,7 +34,8 @@
   import Debug from './Debug';
 
   const currentCacheVersion = 1;
-  const host = 'https://go-proxy-lc.herokuapp.com';
+  const isDev = false;
+  const host = isDev ? 'https://go-proxy-lc.herokuapp.com' : 'https://go-proxy-prod-lc.herokuapp.com/';
 
   export default {
     data() {
@@ -54,7 +55,8 @@
         rawResponseMap: {},
         normalizedTrackingData: [],
         currentChatId: '',
-        currentSource: ''
+        currentSource: '',
+        isDev: isDev
       };
     },
 
